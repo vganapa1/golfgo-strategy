@@ -620,7 +620,7 @@ export default function GolfGoStrategyGenerator() {
             </div>
           )}
         </div>
-      </div>)}
+      </div>}
     </div>
   );
 }
