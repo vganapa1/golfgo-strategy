@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from "react";
+import ClippdDashboard from "./ClippdDashboard";
 
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
@@ -268,6 +269,7 @@ export default function GolfGoStrategyGenerator() {
   const [clippdSearch,setClippdSearch]=useState("");
   const [clippdTypeFilter,setClippdTypeFilter]=useState("");
   const [clippdExpanded,setClippdExpanded]=useState(null);
+  const [showAnalytics,setShowAnalytics]=useState(false);
 
   const handleImageChange=useCallback((file)=>{
     if(!file)return;
@@ -352,6 +354,7 @@ export default function GolfGoStrategyGenerator() {
         @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
         .goal-pulse{animation:gp 2s ease-in-out infinite}
         @keyframes gp{0%,100%{opacity:1}50%{opacity:0.6}}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
       `}</style>
 
       {/* Header */}
@@ -365,6 +368,7 @@ export default function GolfGoStrategyGenerator() {
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <button onClick={()=>setViewMode(viewMode==="clippd"?"strategy":"clippd")} style={{fontSize:12,padding:"6px 12px",borderRadius:6,background:viewMode==="clippd"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.06)",border:viewMode==="clippd"?"1px solid rgba(34,197,94,0.4)":"1px solid rgba(255,255,255,0.1)",color:viewMode==="clippd"?"#4ade80":"#9ca3af",cursor:"pointer",fontFamily:"inherit"}}>{viewMode==="clippd"?"← Strategy":"Clippd Data"}</button>
+          <button onClick={()=>setShowAnalytics(true)} style={{padding:"4px 12px",borderRadius:6,fontSize:10,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",color:"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>📊 Player Analytics</button>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
         </div>
       </div>
@@ -621,6 +625,15 @@ export default function GolfGoStrategyGenerator() {
           )}
         </div>
       </div>}
+
+      {showAnalytics&&(
+        <>
+          <div onClick={()=>setShowAnalytics(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:40,backdropFilter:"blur(2px)"}}/>
+          <div style={{position:"fixed",top:0,right:0,width:"min(860px, 92vw)",height:"100vh",zIndex:50,background:"#080e0b",borderLeft:"1px solid rgba(255,255,255,0.08)",boxShadow:"-20px 0 60px rgba(0,0,0,0.6)",animation:"slideIn 0.28s cubic-bezier(0.34,1.1,0.64,1)"}}>
+            <ClippdDashboard onClose={()=>setShowAnalytics(false)}/>
+          </div>
+        </>
+      )}
     </div>
   );
 }
