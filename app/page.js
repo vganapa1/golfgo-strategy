@@ -217,7 +217,7 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
             <span style={{fontSize:14,flexShrink:0}}>{cat.icon}</span>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:12,color:isDetected?"#4ade80":"#9ca3af",lineHeight:1.3}}>{cat.label} {isDetected&&<span style={{fontSize:10,color:"#4b7a5e"}}>← detected</span>}</div>
-              <div style={{fontSize:11,color:"#374151"}}>{cat.sub}</div>
+              <div style={{fontSize:11,color:"#9ca3af"}}>{cat.sub}</div>
             </div>
             <select value={gamePlan[cat.key]} onChange={e=>{const u={...gamePlan,[cat.key]:e.target.value};setGamePlan(u);if(isDetected)setActiveGoal(e.target.value);}}
               style={{background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,borderRadius:4,fontSize:11,padding:"5px 8px",fontFamily:"inherit",cursor:"pointer",outline:"none",flexShrink:0}}>
@@ -342,8 +342,6 @@ export default function GolfGoStrategyGenerator() {
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
-          <GlowBadge color="sky">Gemini Vision</GlowBadge>
-          <GlowBadge color="emerald">Claude AI</GlowBadge>
         </div>
       </div>
 
@@ -448,7 +446,7 @@ export default function GolfGoStrategyGenerator() {
                 <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Current Game Plan</div>
                 {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return(
                   <div key={cat.key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                    <div><span style={{fontSize:12,color:"#9ca3af"}}>{cat.icon} {cat.label}</span><span style={{fontSize:11,color:"#374151",marginLeft:6}}>{cat.sub}</span></div>
+                    <div><span style={{fontSize:12,color:"#9ca3af"}}>{cat.icon} {cat.label}</span><span style={{fontSize:11,color:"#9ca3af",marginLeft:6}}>{cat.sub}</span></div>
                     <span style={{fontSize:11,padding:"3px 8px",borderRadius:3,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text}}>{gamePlan[cat.key]}</span>
                   </div>
                 );})}
