@@ -1,0 +1,519 @@
+{
+  "generated_at": "2026-02-19T15:16:19.853588",
+  "models": {
+    "claude": "claude-opus-4-6",
+    "gemini": "gemini-3-flash-preview"
+  },
+  "results": [
+    {
+      "image": "Nolan ClippD Data/app 100-140.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": null
+        },
+        "other_data": {
+          "chart_title": "Pin Location Heatmap, Shot Quality",
+          "filter_criteria": "APP, 100-140 yds, All Clubs",
+          "heatmap_values": {
+            "top_left": 66,
+            "top_center": 104,
+            "top_right": 65,
+            "middle_left": 108,
+            "middle_center": 70,
+            "middle_right": 114,
+            "bottom_left": 94,
+            "bottom_center": 126,
+            "bottom_right": 90
+          }
+        },
+        "extraction_notes": "The screenshot displays a 'Pin Location Heatmap' for approach shots (APP) between 100-140 yards using all clubs. The grid represents 9 segments of a green with shot quality scores. Higher numbers/darker colors indicate better shot quality performance relative to those pin locations. The 'screenshot_type' is set to 'other' because this specific heatmap format is not explicitly defined in the provided schema options."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/app 140-180.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "other_data": {
+          "title": "Pin Location Heatmap, Shot Quality",
+          "category": "APP",
+          "distance_range": "140-180 yds",
+          "clubs_included": "All Clubs",
+          "heatmap_values": {
+            "top_row": {
+              "left": 85,
+              "center": 98,
+              "right": 81
+            },
+            "middle_row": {
+              "left": 92,
+              "center": 92,
+              "right": 90
+            },
+            "bottom_row": {
+              "left": 98,
+              "center": 85,
+              "right": 94
+            }
+          }
+        },
+        "extraction_notes": "The data represents shot quality scores across different pin locations within a green grid. The values likely represent a performance metric (0-100) based on pin position."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/app 180+.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": null
+        },
+        "other_data": {
+          "chart_title": "Pin Location Heatmap, Shot Quality",
+          "parameters": "APP, 180+ yds, All Clubs",
+          "heatmap_values": {
+            "top_left": 91,
+            "top_center": 95,
+            "top_right": 98,
+            "middle_left": 63,
+            "middle_center": 87,
+            "middle_right": 123,
+            "bottom_left": 73,
+            "bottom_center": 100,
+            "bottom_right": 92
+          },
+          "chart_label": "Pin Locations"
+        },
+        "extraction_notes": "The screenshot shows a 3x3 grid heatmap representing 'Shot Quality' (likely ClippD's proprietary metric) based on 'Pin Location' for approach shots over 180 yards. Darker teal indicates higher shot quality. The value '123' in the middle-right cell is the highest recorded quality in this set."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/app 50-100.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": null
+        },
+        "other_data": {
+          "chart_title": "Pin Location Heatmap, Shot Quality",
+          "shot_type": "APP",
+          "distance_range": "50-100 yds",
+          "clubs_used": "All Clubs",
+          "pin_location_grid_values": {
+            "top_left": 75,
+            "top_center": 89,
+            "top_right": 95,
+            "middle_left": 105,
+            "middle_center": 97,
+            "middle_right": 78,
+            "bottom_left": 87,
+            "bottom_center": 70,
+            "bottom_right": 90
+          }
+        },
+        "extraction_notes": "The screenshot displays a 'Pin Location Heatmap' for shot quality. The grid represents a circular green divided into 9 zones with corresponding quality scores. Higher numbers likely represent better performance/shot quality for pins located in those sectors."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/app overall.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "dispersion_chart",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 20
+        },
+        "club_data": [
+          {
+            "club": "APP",
+            "avg_distance_yards": null,
+            "carry_yards": null,
+            "accuracy_percent": 71,
+            "dispersion_yards": null,
+            "miss_tendency": "left",
+            "miss_percentage_left": 16,
+            "miss_percentage_right": 6,
+            "miss_percentage_short": 6,
+            "miss_percentage_long": 1
+          }
+        ],
+        "dispersion": {
+          "shape": "asymmetric",
+          "dominant_miss": "left",
+          "lateral_spread_yards": null,
+          "depth_spread_yards": null
+        },
+        "scoring_zones": {
+          "inside_10ft_percent": null,
+          "10_to_20ft_percent": null,
+          "20_to_30ft_percent": null,
+          "outside_30ft_percent": null,
+          "gir_percent": 72,
+          "scrambling_percent": null
+        },
+        "strokes_gained": {
+          "total": null,
+          "off_tee": null,
+          "approach": -0.48,
+          "around_green": null,
+          "putting": null
+        },
+        "other_data": {
+          "app_shot_quality_score": 91,
+          "avg_proximity_to_hole_ft": "30'0\"",
+          "tour_t25_avg_proximity_ft": "31'5\""
+        },
+        "extraction_notes": "Data represents the 'Approach' (APP) category over the last 20 rounds. The GIR metric shows 72% within the center of the dispersion wheel, while the overall accuracy circle indicates 71%."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/app shot quality zones.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "scoring_zone",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 20
+        },
+        "other_data": {
+          "chart_title": "APP Shot Quality Zones",
+          "view_mode": "Scoring Zones - Top 3",
+          "distance_to_hole_zones": [
+            {
+              "range_yards": "120-140",
+              "shot_quality": 97,
+              "avg_proximity": "22'11\""
+            },
+            {
+              "range_yards": "100-120",
+              "shot_quality": 95,
+              "avg_proximity": "27'0\""
+            },
+            {
+              "range_yards": "200-220",
+              "shot_quality": 95,
+              "avg_proximity": "40'1\""
+            }
+          ]
+        },
+        "extraction_notes": "Data extracted from the 'Scoring Zones - Top 3' view for approach (APP) shot quality. Proximity values are provided in feet and inches."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/around the greens.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": "Nolan Forsman",
+          "handicap": "Pro",
+          "rounds_analyzed": "Last 20 Rounds (implied by sub-sections)"
+        },
+        "club_data": [],
+        "strokes_gained": {
+          "total": null,
+          "off_tee": null,
+          "approach": null,
+          "around_green": null,
+          "putting": null
+        },
+        "other_data": {
+          "arg_player_quality": 100,
+          "tour_top_25_players_benchmark": 111,
+          "importance_to_scoring": "15%",
+          "what_to_work_on": {
+            "category": "ARG Fairway",
+            "importance": "8%",
+            "opportunity": "High",
+            "sq_trend": 90
+          },
+          "arg_breakdown_last_20_rounds": {
+            "from_fairway": {
+              "up_and_down_percent": "57%",
+              "strokes_gained_arg": -0.31
+            },
+            "from_rough": {
+              "up_and_down_percent": "63%",
+              "strokes_gained_arg": 0.09
+            },
+            "from_sand": {
+              "up_and_down_percent": "57%",
+              "strokes_gained_arg": 0.16
+            }
+          }
+        },
+        "extraction_notes": "This screenshot focuses specifically on Around the Green (ARG) metrics rather than a general strokes gained or dispersion overview. The 'importance to scoring' and 'what to work on' sections provide player-specific drill-down analysis. Note that the player quality (100) and tour benchmark (111) are ClippD proprietary 'Player Quality' (PQ) scores."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/avoid for approach.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "scoring_zone",
+        "other_data": {
+          "shot_category": "75-100",
+          "shot_quality": 83,
+          "proximity_ft": "23'0\""
+        },
+        "extraction_notes": "The image shows a data point for a specific yardage range (75-100 yards) likely from a shot quality or approach performance chart. Detailed club or player info is not visible."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/last 20 rounds overall putt stats.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "strokes_gained",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 20
+        },
+        "club_data": [
+          {
+            "club": "Putter",
+            "avg_distance_yards": null,
+            "carry_yards": null,
+            "accuracy_percent": null,
+            "dispersion_yards": null,
+            "miss_tendency": null,
+            "miss_percentage_left": null,
+            "miss_percentage_right": null,
+            "miss_percentage_short": null,
+            "miss_percentage_long": null
+          }
+        ],
+        "dispersion": null,
+        "scoring_zones": null,
+        "strokes_gained": {
+          "total": null,
+          "off_tee": null,
+          "approach": null,
+          "around_green": null,
+          "putting": -0.05
+        },
+        "other_data": {
+          "putt_shot_quality": 99,
+          "birdie_or_better_conversion_percent": 28,
+          "tour_t25_avg_birdie_conversion_percent": 30,
+          "total_putts": 472,
+          "one_putts": 108,
+          "two_putts": 170,
+          "three_putts": 8,
+          "putts_made_distance": "53'7\"",
+          "tour_t25_avg_putts_made_distance": "78'9\""
+        },
+        "extraction_notes": "Data is specifically for 'PUTT' category over the last 20 rounds. The '99' value is labeled as PUTT Shot Quality. Total putts (472) do not sum from the displayed 1-putt (108), 2-putt (170), and 3-putt (8) values, suggesting other hole types or missing data in the breakdown."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/ott DNA.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 20
+        },
+        "club_data": [],
+        "dispersion": null,
+        "scoring_zones": null,
+        "strokes_gained": null,
+        "other_data": {
+          "title": "Your OTT DNA",
+          "metric_type": "Avg Shot Quality",
+          "overall_avg_shot_quality": 104,
+          "category_metrics": [
+            {
+              "category": "Par 4 0-350",
+              "avg_shot_quality": 105
+            },
+            {
+              "category": "Par 4 350-400",
+              "avg_shot_quality": 108
+            },
+            {
+              "category": "Par 4 400-450",
+              "avg_shot_quality": 105
+            },
+            {
+              "category": "Par 4 450+",
+              "avg_shot_quality": 102
+            },
+            {
+              "category": "Par 5 500-550",
+              "avg_shot_quality": 103
+            },
+            {
+              "category": "Par 5 550+",
+              "avg_shot_quality": 105
+            }
+          ]
+        },
+        "extraction_notes": "The screenshot shows an 'Off The Tee' (OTT) DNA radar chart. The 'avg_shot_quality' values for specific categories are estimated based on their position relative to the 100, 110, and 120 grid lines on the radar chart. The overall average is explicitly stated as 104."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/putting 15-35.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 5
+        },
+        "other_data": {
+          "putting_profile": {
+            "distance_range": "15-35 ft",
+            "green_speeds": "All Green Speeds",
+            "speed_control": "Neutral (slightly conservative)",
+            "straight_putts": "No Bias (slightly left)",
+            "L_to_R_putts": "Left Bias",
+            "R_to_L_putts": "Right Bias"
+          }
+        },
+        "extraction_notes": "The screenshot shows a 'Putting Profile' for the last 5 rounds for putts from 15-35 ft. Data is represented by slider positions rather than numerical values. 'L to R Putts' shows a significant left bias, and 'R to L Putts' shows a significant right bias, suggesting the player tends to under-read the break on these putts."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/putting 3-8.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 5
+        },
+        "club_data": [
+          {
+            "club": "Putter"
+          }
+        ],
+        "other_data": {
+          "putting_profile": {
+            "distance_range": "3-8 ft",
+            "green_speeds": "All Green Speeds",
+            "metrics": {
+              "speed_control": {
+                "value_description": "Aggressive",
+                "position_percent": 95
+              },
+              "straight_putts": {
+                "value_description": "Left Bias",
+                "position_percent": 30
+              },
+              "l_to_r_putts": {
+                "value_description": "Right Bias",
+                "position_percent": 65
+              },
+              "r_to_l_putts": {
+                "value_description": "Right Bias",
+                "position_percent": 58
+              }
+            }
+          }
+        },
+        "extraction_notes": "Data represents putting tendencies from 3-8 feet over the last 5 rounds. Position percentages are visual estimates based on the slider bars where 0 is far left and 100 is far right. Speed control is extremely aggressive. Straight putts show a notable left bias, while both Left-to-Right and Right-to-Left breaking putts show a right-side miss tendency."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/putting 8-15.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": null,
+          "handicap": null,
+          "rounds_analyzed": 5
+        },
+        "other_data": {
+          "putting_profile": {
+            "distance_range": "8-15 ft",
+            "green_speeds": "All Green Speeds",
+            "speed_control": "Aggressive",
+            "straight_putts_bias": "No Bias",
+            "left_to_right_putts_bias": "Left Bias",
+            "right_to_left_putts_bias": "Right Bias"
+          }
+        },
+        "extraction_notes": "The screenshot shows a putting profile dashboard for the 8-15ft range. Speed control is at the maximum 'Aggressive' setting. Straight putts show neutral 'No Bias'. Left-to-Right putts show a significant 'Left Bias'. Right-to-Left putts show a slight 'Right Bias'."
+      },
+      "differences": null,
+      "errors": {}
+    },
+    {
+      "image": "Nolan ClippD Data/putting overall.png",
+      "claude": null,
+      "gemini": {
+        "screenshot_type": "other",
+        "player_info": {
+          "name": "Nolan Forsman",
+          "handicap": "Pro",
+          "rounds_analyzed": "Last 20 Rounds"
+        },
+        "strokes_gained": {
+          "putting": -0.07
+        },
+        "other_data": {
+          "category": "Putting",
+          "putt_player_quality": 98,
+          "tour_top_25_players_comparison": 104,
+          "importance_to_scoring": "26%",
+          "what_to_work_on": {
+            "focus_area": "PUTT 3-8 ft",
+            "importance": "7%",
+            "opportunity": "Med",
+            "sq_trend": "92 down_arrow"
+          },
+          "putting_performance": {
+            "one_putt_percent": "38%",
+            "three_putt_percent": "3%",
+            "putts_per_round": 29.1,
+            "putts_per_gir": 1.78,
+            "avg_putts_made_distance": "67'10\""
+          }
+        },
+        "extraction_notes": "Screenshot is a specific 'Putting' dashboard view from ClippD. 'Pro' is listed where handicap usually resides. The SQ Trend value for 3-8ft putts shows a red downward arrow next to the number 92."
+      },
+      "differences": null,
+      "errors": {}
+    }
+  ]
+}

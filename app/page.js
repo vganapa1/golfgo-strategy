@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
@@ -262,6 +262,12 @@ export default function GolfGoStrategyGenerator() {
   const [error,setError]=useState("");
   const [activeSection,setActiveSection]=useState(0);
   const fileRef=useRef();
+  const [viewMode,setViewMode]=useState("strategy");
+  const [clippdData,setClippdData]=useState(null);
+  const [clippdLoading,setClippdLoading]=useState(false);
+  const [clippdSearch,setClippdSearch]=useState("");
+  const [clippdTypeFilter,setClippdTypeFilter]=useState("");
+  const [clippdExpanded,setClippdExpanded]=useState(null);
 
   const handleImageChange=useCallback((file)=>{
     if(!file)return;
@@ -272,6 +278,23 @@ export default function GolfGoStrategyGenerator() {
   },[]);
 
   const handleDrop=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange(f);},[handleImageChange]);
+
+  useEffect(()=>{
+    if(viewMode!=="clippd")return;
+    setClippdLoading(true);
+    fetch("/data/clippd_extracted.json").then(r=>r.json()).then(data=>{setClippdData(data);setClippdLoading(false);}).catch(()=>setClippdLoading(false));
+  },[viewMode]);
+
+  const clippdResults=clippdData?.results??[];
+  const clippdTypes=[...new Set(clippdResults.map(r=>(r.gemini||r.claude)?.screenshot_type).filter(Boolean))].sort();
+  const clippdFiltered=clippdResults.filter(r=>{
+    const g=r.gemini||r.claude;
+    const typeOk=!clippdTypeFilter||g?.screenshot_type===clippdTypeFilter;
+    if(!typeOk)return false;
+    if(!clippdSearch.trim())return true;
+    const text=(r.image+" "+JSON.stringify(g??{})).toLowerCase();
+    return text.includes(clippdSearch.toLowerCase());
+  });
 
   const runPipeline=async()=>{
     if(!imageBase64){setError("Upload a yardage book image");return;}
@@ -341,11 +364,49 @@ export default function GolfGoStrategyGenerator() {
           </div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={()=>setViewMode(viewMode==="clippd"?"strategy":"clippd")} style={{fontSize:12,padding:"6px 12px",borderRadius:6,background:viewMode==="clippd"?"rgba(34,197,94,0.15)":"rgba(255,255,255,0.06)",border:viewMode==="clippd"?"1px solid rgba(34,197,94,0.4)":"1px solid rgba(255,255,255,0.1)",color:viewMode==="clippd"?"#4ade80":"#9ca3af",cursor:"pointer",fontFamily:"inherit"}}>{viewMode==="clippd"?"← Strategy":"Clippd Data"}</button>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
         </div>
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"340px 1fr",height:"calc(100vh - 63px)"}}>
+      {viewMode==="clippd"&&(
+        <div style={{padding:24,overflowY:"auto",maxHeight:"calc(100vh - 63px)"}}>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#f0fdf4",marginBottom:20}}>Clippd extracted data</div>
+          {clippdLoading?<div style={{textAlign:"center",padding:40,color:"#6b7280"}}>Loading…</div>:clippdData&&(
+            <>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:20}}>
+                <input type="text" placeholder="Search by image name, chart title, notes…" value={clippdSearch} onChange={e=>setClippdSearch(e.target.value)}
+                  className="input-field" style={{maxWidth:400,flex:1,minWidth:200}}/>
+                <select className="input-field" value={clippdTypeFilter} onChange={e=>setClippdTypeFilter(e.target.value)} style={{width:180}}>
+                  <option value="">All types</option>
+                  {clippdTypes.map(t=><option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div style={{fontSize:12,color:"#6b7280",marginBottom:12}}>{clippdFiltered.length} of {clippdResults.length} results</div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {clippdFiltered.map((r,i)=>(
+                  <div key={i} className="panel" style={{padding:14,overflow:"hidden"}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,cursor:"pointer"}} onClick={()=>setClippdExpanded(clippdExpanded===i?null:i)}>
+                      <div>
+                        <div style={{fontSize:13,color:"#e4e9e6",fontWeight:500}}>{r.image.replace(/^.*\//,"")}</div>
+                        <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>{(r.gemini||r.claude)?.screenshot_type??"—"} {(r.gemini||r.claude)?.other_data?.chart_title||(r.gemini||r.claude)?.other_data?.title||(r.gemini||r.claude)?.other_data?.category||""}</div>
+                      </div>
+                      <span style={{fontSize:11,color:"#4b7a5e"}}>{clippdExpanded===i?"▲ collapse":"▼ expand"}</span>
+                    </div>
+                    {clippdExpanded===i&&(
+                      <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+                        <pre style={{fontSize:11,color:"#d1d5db",background:"rgba(0,0,0,0.2)",padding:14,borderRadius:8,overflow:"auto",maxHeight:400,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{JSON.stringify(r.gemini||r.claude||r,null,2)}</pre>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {viewMode==="strategy"&&<div style={{display:"grid",gridTemplateColumns:"340px 1fr",height:"calc(100vh - 63px)"}}>
 
         {/* Left sidebar */}
         <div style={{borderRight:"1px solid rgba(255,255,255,0.06)",padding:16,overflowY:"auto",display:"flex",flexDirection:"column",gap:12}}>
@@ -559,7 +620,7 @@ export default function GolfGoStrategyGenerator() {
             </div>
           )}
         </div>
-      </div>
+      </div>)}
     </div>
   );
 }
