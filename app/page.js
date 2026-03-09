@@ -213,26 +213,26 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
         const gc = GOAL_COLORS[goal] || GOAL_COLORS["par protection"];
         const isDetected = detectedCategory === cat.key;
         return (
-          <div key={cat.key} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:6,marginBottom:4,background:isDetected?"rgba(34,197,94,0.06)":"rgba(255,255,255,0.02)",border:isDetected?"1px solid rgba(34,197,94,0.2)":"1px solid transparent"}}>
-            <span style={{fontSize:12,flexShrink:0}}>{cat.icon}</span>
+          <div key={cat.key} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:6,marginBottom:5,background:isDetected?"rgba(34,197,94,0.06)":"rgba(255,255,255,0.02)",border:isDetected?"1px solid rgba(34,197,94,0.2)":"1px solid transparent"}}>
+            <span style={{fontSize:14,flexShrink:0}}>{cat.icon}</span>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:10,color:isDetected?"#4ade80":"#9ca3af",lineHeight:1.2}}>{cat.label} {isDetected&&<span style={{fontSize:9,color:"#4b7a5e"}}>← detected</span>}</div>
-              <div style={{fontSize:9,color:"#374151"}}>{cat.sub}</div>
+              <div style={{fontSize:12,color:isDetected?"#4ade80":"#9ca3af",lineHeight:1.3}}>{cat.label} {isDetected&&<span style={{fontSize:10,color:"#4b7a5e"}}>← detected</span>}</div>
+              <div style={{fontSize:11,color:"#374151"}}>{cat.sub}</div>
             </div>
             <select value={gamePlan[cat.key]} onChange={e=>{const u={...gamePlan,[cat.key]:e.target.value};setGamePlan(u);if(isDetected)setActiveGoal(e.target.value);}}
-              style={{background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,borderRadius:4,fontSize:9,padding:"3px 6px",fontFamily:"inherit",cursor:"pointer",outline:"none",flexShrink:0}}>
+              style={{background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,borderRadius:4,fontSize:11,padding:"5px 8px",fontFamily:"inherit",cursor:"pointer",outline:"none",flexShrink:0}}>
               {GOAL_OPTIONS.map(g=><option key={g} value={g} style={{background:"#0d1a12"}}>{g}</option>)}
             </select>
           </div>
         );
       })}
       {detectedCategory && (
-        <div style={{marginTop:10,padding:"8px 10px",borderRadius:6,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>Active Goal Override</div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:10,color:"#6b7280",flex:1}}>Current hole:</span>
+        <div style={{marginTop:12,padding:"10px 12px",borderRadius:6,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+          <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6,fontWeight:600}}>Active Goal Override</div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:12,color:"#6b7280",flex:1}}>Current hole:</span>
             <select value={activeGoal} onChange={e=>setActiveGoal(e.target.value)}
-              style={{background:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).bg,border:`1px solid ${(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).border}`,color:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).text,borderRadius:4,fontSize:10,padding:"4px 8px",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+              style={{background:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).bg,border:`1px solid ${(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).border}`,color:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).text,borderRadius:4,fontSize:12,padding:"5px 10px",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
               {GOAL_OPTIONS.map(g=><option key={g} value={g} style={{background:"#0d1a12"}}>{g}</option>)}
             </select>
           </div>
@@ -367,15 +367,15 @@ export default function GolfGoStrategyGenerator() {
           <div className="panel" style={{padding:14}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
               <div>
-                <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase"}}>Coach Game Plan</div>
-                <div style={{fontSize:9,color:"#374151",marginTop:2}}>Scoring goal by hole type</div>
+                <div style={{fontSize:13,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",fontWeight:600}}>Coach Game Plan</div>
+                <div style={{fontSize:11,color:"#374151",marginTop:2}}>Scoring goal by hole type</div>
               </div>
-              <button onClick={()=>setShowGamePlan(!showGamePlan)} style={{fontSize:9,color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{showGamePlan?"collapse ↑":"expand ↓"}</button>
+              <button onClick={()=>setShowGamePlan(!showGamePlan)} style={{fontSize:11,color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{showGamePlan?"collapse ↑":"expand ↓"}</button>
             </div>
             {showGamePlan
               ?<GamePlanPanel gamePlan={gamePlan} setGamePlan={setGamePlan} detectedCategory={detectedCategory} activeGoal={activeGoal} setActiveGoal={setActiveGoal}/>
               :<div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return<span key={cat.key} style={{fontSize:9,padding:"2px 6px",borderRadius:3,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text}}>{cat.label.split("·")[1]?.trim()}: {gamePlan[cat.key]}</span>;})}
+                {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return<span key={cat.key} style={{fontSize:11,padding:"4px 8px",borderRadius:3,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text}}>{cat.label.split("·")[1]?.trim()}: {gamePlan[cat.key]}</span>;})}
               </div>
             }
           </div>
@@ -445,11 +445,11 @@ export default function GolfGoStrategyGenerator() {
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#374151",textAlign:"center"}}>Upload a yardage book image<br/>to generate a hole strategy</div>
               <div style={{fontSize:11,color:"#1f2937",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>Gemini detects the hole · Claude builds the strategy</div>
               <div className="panel" style={{padding:14,maxWidth:360,width:"100%"}}>
-                <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Current Game Plan</div>
+                <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Current Game Plan</div>
                 {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return(
-                  <div key={cat.key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                    <div><span style={{fontSize:10,color:"#9ca3af"}}>{cat.icon} {cat.label}</span><span style={{fontSize:9,color:"#374151",marginLeft:6}}>{cat.sub}</span></div>
-                    <span style={{fontSize:9,padding:"2px 7px",borderRadius:3,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text}}>{gamePlan[cat.key]}</span>
+                  <div key={cat.key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    <div><span style={{fontSize:12,color:"#9ca3af"}}>{cat.icon} {cat.label}</span><span style={{fontSize:11,color:"#374151",marginLeft:6}}>{cat.sub}</span></div>
+                    <span style={{fontSize:11,padding:"3px 8px",borderRadius:3,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text}}>{gamePlan[cat.key]}</span>
                   </div>
                 );})}
               </div>
