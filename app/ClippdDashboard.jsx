@@ -225,14 +225,14 @@ function Radar({ cats }) {
     <svg width={180} height={180} style={{ overflow: "visible" }}>
       {rings.map(v => <polygon key={v} points={ringPts(v)} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={1} />)}
       {angles.map((a, i) => { const p = pt(a, vMax); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />; })}
-      {rings.map(v => { const p = pt(-Math.PI / 2, v); return <text key={v} x={p.x + 3} y={p.y - 2} fontSize={7} fill="#374151">{v}</text>; })}
+      {rings.map(v => { const p = pt(-Math.PI / 2, v); return <text key={v} x={p.x + 3} y={p.y - 2} fontSize={9} fill="#6b7280">{v}</text>; })}
       <polygon points={poly} fill="rgba(34,197,94,0.1)" stroke="#22c55e" strokeWidth={1.5} strokeLinejoin="round" />
       {dataPts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={4} fill="#4ade80" stroke="#080e0b" strokeWidth={1.5} />)}
       {cats.map((cat, i) => {
         const labelR = r + 16;
         const lx = cx + Math.cos(angles[i]) * labelR;
         const ly = cy + Math.sin(angles[i]) * labelR;
-        return <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={7} fill="#6b7280">{cat.label.split(" ").slice(-1)[0]}</text>;
+        return <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill="#c4cdd8">{cat.label.split(" ").slice(-1)[0]}</text>;
       })}
     </svg>
   );
@@ -267,8 +267,8 @@ function MissDonut({ left, right, short, long_ }) {
           offset += dash;
           return el;
         })}
-        <text x={cx} y={cy - 3} textAnchor="middle" fontSize={11} fill="#e4e9e6" fontWeight="700">{total}%</text>
-        <text x={cx} y={cy + 9} textAnchor="middle" fontSize={7} fill="#4b7a5e">missed</text>
+        <text x={cx} y={cy - 3} textAnchor="middle" fontSize={12} fill="#e4e9e6" fontWeight="700">{total}%</text>
+        <text x={cx} y={cy + 9} textAnchor="middle" fontSize={10} fill="#6dab82">missed</text>
       </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {segs.map(s => (
@@ -365,7 +365,7 @@ export default function ClippdDashboard({ onClose }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 7, background: "linear-gradient(135deg,#16a34a,#065f46)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>📊</div>
           <div>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 14, fontWeight: 700, color: "#f0fdf4", lineHeight: 1 }}>ClippD Analytics</div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#f0fdf4", lineHeight: 1 }}>ClippD Analytics</div>
             <div style={{ fontSize: 13, color: "#6dab82", letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 2 }}>
               {d.player.name} · {d.player.handicap} · {d.player.hand}-Handed · Last {d.player.rounds} Rounds
             </div>
@@ -584,7 +584,7 @@ export default function ClippdDashboard({ onClose }) {
                 <div key={range} onClick={() => setHmRange(range)}
                   style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${hmRange === range ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.06)"}`, borderRadius: 10, padding: 12, cursor: "pointer", transition: "border-color 0.2s" }}>
                   <HeatGrid grid={hm.grid} compact />
-                  <div style={{ fontSize: 12, color: hmRange === range ? "#4ade80" : "#6b7280", textAlign: "center", marginTop: 6 }}>{range} yds</div>
+                  <div style={{ fontSize: 13, color: hmRange === range ? "#4ade80" : "#9ca3af", textAlign: "center", marginTop: 6 }}>{range} yds</div>
                 </div>
               ))}
             </div>
@@ -597,7 +597,7 @@ export default function ClippdDashboard({ onClose }) {
             <Divider label="Off The Tee DNA · Last 20 Rounds" />
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "start" }}>
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 20 }}>
-                <div style={{ fontSize: 12, color: "#6dab82", textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center", marginBottom: 10 }}>Avg Shot Quality</div>
+                <div style={{ fontSize: 13, color: "#6dab82", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "center", marginBottom: 10, fontWeight: 600 }}>Avg Shot Quality</div>
                 <Radar cats={d.ott.categories} />
               </div>
 
@@ -695,7 +695,7 @@ export default function ClippdDashboard({ onClose }) {
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                     <span style={{ fontSize: 13, color: "#9ca3af" }}>{label}</span>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "#e4e9e6" }}>{val}</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#e4e9e6" }}>{val}</div>
                       {sub && <div style={{ fontSize: 13, color: "#9ca3af" }}>{sub}</div>}
                     </div>
                   </div>
