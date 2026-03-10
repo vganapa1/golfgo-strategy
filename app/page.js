@@ -196,13 +196,13 @@ const DEFAULT_PLAYER = {
 
 const GlowBadge = ({ children, color="emerald", style={} }) => {
   const c = { emerald:{bg:"rgba(34,197,94,0.1)",border:"rgba(34,197,94,0.3)",text:"#4ade80"}, amber:{bg:"rgba(251,191,36,0.1)",border:"rgba(251,191,36,0.3)",text:"#fbbf24"}, sky:{bg:"rgba(56,189,248,0.1)",border:"rgba(56,189,248,0.3)",text:"#38bdf8"}, rose:{bg:"rgba(251,113,133,0.1)",border:"rgba(251,113,133,0.3)",text:"#fb7185"} }[color] || {bg:"rgba(34,197,94,0.1)",border:"rgba(34,197,94,0.3)",text:"#4ade80"};
-  return <span style={{fontSize:10,padding:"2px 8px",borderRadius:4,background:c.bg,border:`1px solid ${c.border}`,color:c.text,fontFamily:"inherit",...style}}>{children}</span>;
+  return <span style={{fontSize:12,padding:"3px 10px",borderRadius:4,background:c.bg,border:`1px solid ${c.border}`,color:c.text,fontFamily:"inherit",...style}}>{children}</span>;
 };
 
 const StatRow = ({ label, value, unit }) => (
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-    <span style={{fontSize:10,color:"#6b7280"}}>{label}</span>
-    <span style={{fontSize:10,color:"#e4e9e6"}}>{value}{unit?<span style={{color:"#4b7a5e",marginLeft:2}}>{unit}</span>:""}</span>
+  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+    <span style={{fontSize:12,color:"#c4cdd8"}}>{label}</span>
+    <span style={{fontSize:13,color:"#f0fdf4",fontWeight:500}}>{value}{unit?<span style={{color:"#6dab82",marginLeft:2}}>{unit}</span>:""}</span>
   </div>
 );
 
@@ -217,11 +217,11 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
           <div key={cat.key} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:6,marginBottom:5,background:isDetected?"rgba(34,197,94,0.06)":"rgba(255,255,255,0.02)",border:isDetected?"1px solid rgba(34,197,94,0.2)":"1px solid transparent"}}>
             <span style={{fontSize:14,flexShrink:0}}>{cat.icon}</span>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:12,color:isDetected?"#4ade80":"#9ca3af",lineHeight:1.3}}>{cat.label} {isDetected&&<span style={{fontSize:10,color:"#4b7a5e"}}>← detected</span>}</div>
-              <div style={{fontSize:11,color:"#9ca3af"}}>{cat.sub}</div>
+              <div style={{fontSize:13,color:isDetected?"#4ade80":"#c4cdd8",lineHeight:1.3,fontWeight:isDetected?600:400}}>{cat.label} {isDetected&&<span style={{fontSize:11,color:"#6dab82"}}>← detected</span>}</div>
+              <div style={{fontSize:12,color:"#9ca3af"}}>{cat.sub}</div>
             </div>
             <select value={gamePlan[cat.key]} onChange={e=>{const u={...gamePlan,[cat.key]:e.target.value};setGamePlan(u);if(isDetected)setActiveGoal(e.target.value);}}
-              style={{background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,borderRadius:4,fontSize:11,padding:"5px 8px",fontFamily:"inherit",cursor:"pointer",outline:"none",flexShrink:0}}>
+              style={{background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,borderRadius:4,fontSize:12,padding:"5px 9px",fontFamily:"inherit",cursor:"pointer",outline:"none",flexShrink:0}}>
               {GOAL_OPTIONS.map(g=><option key={g} value={g} style={{background:"#0d1a12"}}>{g}</option>)}
             </select>
           </div>
@@ -229,11 +229,11 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
       })}
       {detectedCategory && (
         <div style={{marginTop:12,padding:"10px 12px",borderRadius:6,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6,fontWeight:600}}>Active Goal Override</div>
+          <div style={{fontSize:12,color:"#6dab82",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6,fontWeight:600}}>Active Goal Override</div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:12,color:"#6b7280",flex:1}}>Current hole:</span>
+            <span style={{fontSize:13,color:"#c4cdd8",flex:1}}>Current hole:</span>
             <select value={activeGoal} onChange={e=>setActiveGoal(e.target.value)}
-              style={{background:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).bg,border:`1px solid ${(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).border}`,color:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).text,borderRadius:4,fontSize:12,padding:"5px 10px",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
+              style={{background:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).bg,border:`1px solid ${(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).border}`,color:(GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"]).text,borderRadius:4,fontSize:13,padding:"5px 10px",fontFamily:"inherit",cursor:"pointer",outline:"none"}}>
               {GOAL_OPTIONS.map(g=><option key={g} value={g} style={{background:"#0d1a12"}}>{g}</option>)}
             </select>
           </div>
@@ -318,10 +318,10 @@ export default function GolfGoStrategyGenerator() {
         .glow-btn:hover{box-shadow:0 0 30px #16a34a50;transform:translateY(-1px)}
         .glow-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
         .panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px}
-        .input-field{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e4e9e6;font-family:inherit;font-size:12px;padding:6px 10px;width:100%;outline:none;transition:border-color 0.2s}
+        .input-field{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#f0fdf4;font-family:inherit;font-size:13px;padding:7px 10px;width:100%;outline:none;transition:border-color 0.2s}
         .input-field:focus{border-color:#22c55e60}
         select.input-field option{background:#0d1a12}
-        .section-tab{padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid transparent;transition:all 0.15s;background:transparent;color:#6b7280;font-family:inherit;white-space:nowrap}
+        .section-tab{padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid transparent;transition:all 0.15s;background:transparent;color:#9ca3af;font-family:inherit;white-space:nowrap}
         .section-tab.active{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#4ade80}
         .section-tab:hover:not(.active){background:rgba(255,255,255,0.04);color:#9ca3af}
         .drop-zone:hover{border-color:#22c55e60!important;background:rgba(34,197,94,0.05)!important}
@@ -340,11 +340,11 @@ export default function GolfGoStrategyGenerator() {
           <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,#16a34a,#065f46)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⛳</div>
           <div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#f0fdf4",letterSpacing:"-0.5px"}}>GolfGo</div>
-            <div style={{fontSize:9,color:"#4b7a5e",letterSpacing:"0.15em",textTransform:"uppercase"}}>Course Strategy Engine</div>
+            <div style={{fontSize:11,color:"#6dab82",letterSpacing:"0.15em",textTransform:"uppercase"}}>Course Strategy Engine</div>
           </div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={()=>setShowAnalytics(true)} style={{padding:"4px 12px",borderRadius:6,fontSize:10,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",color:"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>📊 Player Analytics</button>
+          <button onClick={()=>setShowAnalytics(true)} style={{padding:"6px 14px",borderRadius:6,fontSize:13,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",color:"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>📊 Player Analytics</button>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
         </div>
       </div>
@@ -356,23 +356,23 @@ export default function GolfGoStrategyGenerator() {
 
           {/* Image upload */}
           <div className="panel" style={{padding:14}}>
-            <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Yardage Book Image</div>
+            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8,fontWeight:600}}>Yardage Book Image</div>
             <div className="drop-zone" style={{border:"1px dashed rgba(255,255,255,0.12)",borderRadius:8,padding:imagePreview?0:"18px 16px",textAlign:"center",cursor:"pointer",overflow:"hidden",transition:"all 0.2s"}}
               onClick={()=>fileRef.current?.click()} onDrop={handleDrop} onDragOver={e=>e.preventDefault()}>
-              {imagePreview?<img src={imagePreview} alt="Yardage book" style={{width:"100%",display:"block",borderRadius:8}}/>:<><div style={{fontSize:22,marginBottom:4}}>📷</div><div style={{fontSize:11,color:"#6b7280"}}>Drop or click to upload</div><div style={{fontSize:9,color:"#374151",marginTop:2}}>JPG · PNG · WEBP</div></>}
+              {imagePreview?<img src={imagePreview} alt="Yardage book" style={{width:"100%",display:"block",borderRadius:8}}/>:<><div style={{fontSize:22,marginBottom:4}}>📷</div><div style={{fontSize:13,color:"#c4cdd8"}}>Drop or click to upload</div><div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>JPG · PNG · WEBP</div></>}
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleImageChange(e.target.files[0])}/>
-            {imageFile&&<div style={{fontSize:9,color:"#4b7a5e",marginTop:5}}>✓ {imageFile.name}</div>}
+            {imageFile&&<div style={{fontSize:12,color:"#6dab82",marginTop:5}}>✓ {imageFile.name}</div>}
           </div>
 
           {/* Game plan */}
           <div className="panel" style={{padding:14}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
               <div>
-                <div style={{fontSize:13,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",fontWeight:600}}>Coach Game Plan</div>
-                <div style={{fontSize:11,color:"#374151",marginTop:2}}>Scoring goal by hole type</div>
+                <div style={{fontSize:14,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:600}}>Coach Game Plan</div>
+                <div style={{fontSize:12,color:"#c4cdd8",marginTop:2}}>Scoring goal by hole type</div>
               </div>
-              <button onClick={()=>setShowGamePlan(!showGamePlan)} style={{fontSize:11,color:"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{showGamePlan?"collapse ↑":"expand ↓"}</button>
+              <button onClick={()=>setShowGamePlan(!showGamePlan)} style={{fontSize:12,color:"#9ca3af",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{showGamePlan?"collapse ↑":"expand ↓"}</button>
             </div>
             {showGamePlan
               ?<GamePlanPanel gamePlan={gamePlan} setGamePlan={setGamePlan} detectedCategory={detectedCategory} activeGoal={activeGoal} setActiveGoal={setActiveGoal}/>
@@ -384,45 +384,45 @@ export default function GolfGoStrategyGenerator() {
 
           {/* Weather */}
           <div className="panel" style={{padding:14}}>
-            <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Weather</div>
+            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Weather</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Wind (mph)</div><input type="number" className="input-field" value={weather.wind_speed_mph} onChange={e=>setWeather({...weather,wind_speed_mph:+e.target.value})}/></div>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Temp (°F)</div><input type="number" className="input-field" value={weather.temperature_f} onChange={e=>setWeather({...weather,temperature_f:+e.target.value})}/></div>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Wind Dir</div><select className="input-field" value={weather.wind_direction} onChange={e=>setWeather({...weather,wind_direction:e.target.value})}>{windLabels.map(w=><option key={w}>{w}</option>)}</select></div>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Stimp</div><input type="number" className="input-field" value={weather.green_speed_stimp} onChange={e=>setWeather({...weather,green_speed_stimp:+e.target.value})}/></div>
-              <div style={{gridColumn:"span 2"}}><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Firmness</div><select className="input-field" value={weather.firmness} onChange={e=>setWeather({...weather,firmness:e.target.value})}>{["soft","normal","firm","hard"].map(f=><option key={f}>{f}</option>)}</select></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Wind (mph)</div><input type="number" className="input-field" value={weather.wind_speed_mph} onChange={e=>setWeather({...weather,wind_speed_mph:+e.target.value})}/></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Temp (°F)</div><input type="number" className="input-field" value={weather.temperature_f} onChange={e=>setWeather({...weather,temperature_f:+e.target.value})}/></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Wind Dir</div><select className="input-field" value={weather.wind_direction} onChange={e=>setWeather({...weather,wind_direction:e.target.value})}>{windLabels.map(w=><option key={w}>{w}</option>)}</select></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Stimp</div><input type="number" className="input-field" value={weather.green_speed_stimp} onChange={e=>setWeather({...weather,green_speed_stimp:+e.target.value})}/></div>
+              <div style={{gridColumn:"span 2"}}><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Firmness</div><select className="input-field" value={weather.firmness} onChange={e=>setWeather({...weather,firmness:e.target.value})}>{["soft","normal","firm","hard"].map(f=><option key={f}>{f}</option>)}</select></div>
             </div>
           </div>
 
           {/* Conditions */}
           <div className="panel" style={{padding:14}}>
-            <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:10}}>Round Conditions</div>
+            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Round Conditions</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <div style={{gridColumn:"span 2"}}><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Pin Position</div><select className="input-field" value={conditions.pin_position} onChange={e=>setConditions({...conditions,pin_position:e.target.value})}>{pinLabels.map(p=><option key={p}>{p}</option>)}</select></div>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Rough (in)</div><input type="number" step="0.5" className="input-field" value={conditions.rough_height_inches} onChange={e=>setConditions({...conditions,rough_height_inches:+e.target.value})}/></div>
-              <div><div style={{fontSize:9,color:"#6b7280",marginBottom:3}}>Roll (yds)</div><input type="number" className="input-field" value={conditions.fairway_roll_yards} onChange={e=>setConditions({...conditions,fairway_roll_yards:+e.target.value})}/></div>
+              <div style={{gridColumn:"span 2"}}><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Pin Position</div><select className="input-field" value={conditions.pin_position} onChange={e=>setConditions({...conditions,pin_position:e.target.value})}>{pinLabels.map(p=><option key={p}>{p}</option>)}</select></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Rough (in)</div><input type="number" step="0.5" className="input-field" value={conditions.rough_height_inches} onChange={e=>setConditions({...conditions,rough_height_inches:+e.target.value})}/></div>
+              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Roll (yds)</div><input type="number" className="input-field" value={conditions.fairway_roll_yards} onChange={e=>setConditions({...conditions,fairway_roll_yards:+e.target.value})}/></div>
             </div>
           </div>
 
           {/* Player */}
           <div className="panel" style={{padding:14}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-              <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase"}}>Player Profile</div>
-              <button onClick={()=>setEditingPlayer(!editingPlayer)} style={{fontSize:9,color:editingPlayer?"#4ade80":"#6b7280",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{editingPlayer?"← back":"edit ✎"}</button>
+              <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:600}}>Player Profile</div>
+              <button onClick={()=>setEditingPlayer(!editingPlayer)} style={{fontSize:12,color:editingPlayer?"#4ade80":"#9ca3af",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{editingPlayer?"← back":"edit ✎"}</button>
             </div>
             {editingPlayer?<><textarea className="input-field" style={{height:180,resize:"vertical",fontSize:10,lineHeight:1.5}} value={playerJson} onChange={e=>setPlayerJson(e.target.value)}/><button className="glow-btn" style={{marginTop:8,padding:"6px 12px",fontSize:11,borderRadius:6,width:"100%",color:"#f0fdf4"}} onClick={()=>{try{setPlayer(JSON.parse(playerJson));setEditingPlayer(false);}catch{alert("Invalid JSON");}}}>Save Profile</button></>
             :<>
-              <div style={{fontSize:12,color:"#d1fae5",fontWeight:500,marginBottom:8}}>{player.name} <span style={{fontSize:9,color:"#4b7a5e"}}>{player.handedness==="left"?"LH · ":""}Pro</span></div>
-              <div style={{fontSize:9,color:"#4b7a5e",marginBottom:5,textTransform:"uppercase"}}>Off The Tee</div>
+              <div style={{fontSize:14,color:"#d1fae5",fontWeight:500,marginBottom:8}}>{player.name} <span style={{fontSize:12,color:"#6dab82"}}>{player.handedness==="left"?"LH · ":""}Pro</span></div>
+              <div style={{fontSize:12,color:"#6dab82",marginBottom:5,textTransform:"uppercase",fontWeight:600}}>Off The Tee</div>
               <StatRow label="Driver Carry" value={player.off_the_tee?.clubs?.driver?.avg_carry_yards} unit="yds"/>
               <StatRow label="Driver FIR" value={`${((player.off_the_tee?.clubs?.driver?.fir_pct||0)*100).toFixed(0)}%`}/>
               <StatRow label="3W FIR" value={`${((player.off_the_tee?.clubs?.["3w"]?.fir_pct||0)*100).toFixed(0)}%`}/>
               <StatRow label="3i FIR" value={`${((player.off_the_tee?.clubs?.["3i"]?.fir_pct||0)*100).toFixed(0)}%`}/>
-              <div style={{fontSize:9,color:"#4b7a5e",margin:"7px 0 5px",textTransform:"uppercase"}}>Approach</div>
+              <div style={{fontSize:12,color:"#6dab82",margin:"7px 0 5px",textTransform:"uppercase",fontWeight:600}}>Approach</div>
               <StatRow label="SG: App" value={player.approach?.sg_approach_avg}/>
               <StatRow label="Best Range" value="120-140 yds"/>
               <StatRow label="Dom Miss" value={player.approach?.dominant_miss_real_world}/>
-              <div style={{fontSize:9,color:"#4b7a5e",margin:"7px 0 5px",textTransform:"uppercase"}}>Putting</div>
+              <div style={{fontSize:12,color:"#6dab82",margin:"7px 0 5px",textTransform:"uppercase",fontWeight:600}}>Putting</div>
               <StatRow label="SG: Putt" value={player.putting?.sg_putting_avg}/>
               <StatRow label="Scrambling" value={`${((player.around_green?.scrambling_pct||0)*100).toFixed(0)}%`}/>
               <StatRow label="Make% 6-10ft" value={`${((player.putting?.zones?.["6-10ft"]?.make_rate_pct||0)*100).toFixed(0)}%`}/>
@@ -433,9 +433,9 @@ export default function GolfGoStrategyGenerator() {
             {phase==="extracting"?"⟳ Analyzing Image...":phase==="strategizing"?"⟳ Building Strategy...":"▶ Generate Strategy"}
           </button>
 
-          {phase==="done"&&holeData&&<button onClick={rerun} style={{padding:"8px 16px",borderRadius:8,fontSize:11,color:"#4ade80",fontFamily:"inherit",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",cursor:"pointer",width:"100%"}}>↺ Re-run with goal override</button>}
+          {phase==="done"&&holeData&&<button onClick={rerun} style={{padding:"8px 16px",borderRadius:8,fontSize:13,color:"#4ade80",fontFamily:"inherit",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",cursor:"pointer",width:"100%"}}>↺ Re-run with goal override</button>}
 
-          {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:10,fontSize:11,color:"#fca5a5"}}>⚠ {error}</div>}
+          {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:10,fontSize:13,color:"#fca5a5"}}>⚠ {error}</div>}
         </div>
 
         {/* Right panel */}
@@ -444,8 +444,8 @@ export default function GolfGoStrategyGenerator() {
           {phase==="idle"&&(
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16}}>
               <div style={{fontSize:44,opacity:0.2}}>⛳</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#374151",textAlign:"center"}}>Upload a yardage book image<br/>to generate a hole strategy</div>
-              <div style={{fontSize:11,color:"#1f2937",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>Gemini detects the hole · Claude builds the strategy</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#c4cdd8",textAlign:"center"}}>Upload a yardage book image<br/>to generate a hole strategy</div>
+              <div style={{fontSize:14,color:"#9ca3af",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>Gemini detects the hole · Claude builds the strategy</div>
               <div className="panel" style={{padding:14,maxWidth:360,width:"100%"}}>
                 <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Current Game Plan</div>
                 {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return(
@@ -463,11 +463,11 @@ export default function GolfGoStrategyGenerator() {
               <div style={{width:44,height:44,borderRadius:"50%",border:"2px solid #16a34a20",borderTopColor:"#16a34a"}} className="spin"/>
               <div style={{textAlign:"center"}}>
                 <div style={{fontSize:13,color:"#4ade80",marginBottom:5}}>{phase==="extracting"?"Analyzing yardage book...":"Building hole strategy..."}</div>
-                <div style={{fontSize:10,color:"#374151"}}>{phase==="extracting"?"Gemini Vision extracting hole data":"Claude synthesizing strategy"}</div>
+                <div style={{fontSize:10,color:"#9ca3af"}}>{phase==="extracting"?"Gemini Vision extracting hole data":"Claude synthesizing strategy"}</div>
               </div>
               {holeData&&phase==="strategizing"&&(
                 <div className="panel fade-in" style={{padding:14,maxWidth:380,width:"100%"}}>
-                  <div style={{fontSize:9,color:"#4b7a5e",letterSpacing:"0.1em",marginBottom:8,textTransform:"uppercase"}}>Extracted ✓  |  Classifying hole...</div>
+                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",marginBottom:8,textTransform:"uppercase"}}>Extracted ✓  |  Classifying hole...</div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
                     {holeData.hole_number&&<StatRow label="Hole" value={holeData.hole_number}/>}
                     {holeData.par&&<StatRow label="Par" value={holeData.par}/>}
@@ -476,7 +476,7 @@ export default function GolfGoStrategyGenerator() {
                   </div>
                   {detectedCategory&&activeGoal&&(
                     <div style={{padding:"8px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
-                      <div style={{fontSize:9,color:goalColor.text,textTransform:"uppercase",letterSpacing:"0.1em"}}>Auto-classified</div>
+                      <div style={{fontSize:12,color:goalColor.text,textTransform:"uppercase",letterSpacing:"0.08em"}}>Auto-classified</div>
                       <div style={{fontSize:12,color:goalColor.text,marginTop:3,fontWeight:500}}>{catMeta?.icon} {catMeta?.label} → {activeGoal}</div>
                     </div>
                   )}
@@ -490,19 +490,19 @@ export default function GolfGoStrategyGenerator() {
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"}}>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:19,color:"#f0fdf4"}}>
                   {holeData?.hole_number?`Hole ${holeData.hole_number}`:"Strategy"}
-                  {holeData?.par&&<span style={{color:"#4b7a5e",fontSize:13,marginLeft:8}}>Par {holeData.par}</span>}
+                  {holeData?.par&&<span style={{color:"#6dab82",fontSize:14,marginLeft:8}}>Par {holeData.par}</span>}
                 </div>
                 {holeData?.yardages?.back&&<GlowBadge color="emerald">{holeData.yardages.back} yds</GlowBadge>}
                 {holeData?.dogleg?.exists&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
                 {holeData?.elevation_change&&holeData.elevation_change!=="flat"&&<GlowBadge color="sky">{holeData.elevation_change}</GlowBadge>}
                 {detectedCategory&&activeGoal&&(
                   <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
-                    <span style={{fontSize:10,color:"#6b7280"}}>{catMeta?.icon} {catMeta?.label}</span>
-                    <span style={{fontSize:9,color:"#374151"}}>→</span>
-                    <span style={{fontSize:10,color:goalColor.text,fontWeight:500}}>{activeGoal}</span>
+                    <span style={{fontSize:12,color:"#c4cdd8"}}>{catMeta?.icon} {catMeta?.label}</span>
+                    <span style={{fontSize:12,color:"#6b7280"}}>→</span>
+                    <span style={{fontSize:12,color:goalColor.text,fontWeight:600}}>{activeGoal}</span>
                   </div>
                 )}
-                <span style={{marginLeft:"auto",fontSize:9,color:"#4b7a5e"}}>{player.name} · {weather.wind_speed_mph}mph {weather.wind_direction} · Pin {conditions.pin_position}</span>
+                <span style={{marginLeft:"auto",fontSize:12,color:"#6dab82"}}>{player.name} · {weather.wind_speed_mph}mph {weather.wind_direction} · Pin {conditions.pin_position}</span>
               </div>
 
               <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
@@ -511,7 +511,7 @@ export default function GolfGoStrategyGenerator() {
 
               {parsedStrategy[activeSection]&&(
                 <div className="panel fade-in" style={{padding:20}} key={activeSection}>
-                  <div style={{fontSize:13,color:"#4ade80",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{fontSize:15,color:"#4ade80",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
                     <span>{parsedStrategy[activeSection].icon}</span>
                     <span style={{fontFamily:"'Playfair Display',serif"}}>{parsedStrategy[activeSection].label}</span>
                     {activeSection===0&&activeGoal&&<span style={{marginLeft:"auto",fontSize:10,padding:"2px 8px",borderRadius:4,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text}}>{activeGoal}</span>}
@@ -520,44 +520,44 @@ export default function GolfGoStrategyGenerator() {
                     ?<div style={{display:"flex",flexDirection:"column",gap:10}}>
                       {parsedStrategy[activeSection].lines.map((line,i)=>(
                         <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",borderBottom:"1px solid rgba(255,255,255,0.04)",paddingBottom:10}}>
-                          <div style={{width:20,height:20,borderRadius:4,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#4ade80",flexShrink:0,marginTop:1}}>{i+1}</div>
-                          <div style={{fontSize:13,color:"#d1d5db",lineHeight:1.6}}>{line}</div>
+                          <div style={{width:22,height:22,borderRadius:4,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#4ade80",flexShrink:0,marginTop:1}}>{i+1}</div>
+                          <div style={{fontSize:14,color:"#e4e9e6",lineHeight:1.7}}>{line}</div>
                         </div>
                       ))}
                     </div>
-                    :<div style={{fontSize:12,color:"#374151"}}>No data for this section</div>
+                    :<div style={{fontSize:12,color:"#9ca3af"}}>No data for this section</div>
                   }
                 </div>
               )}
 
               {holeData&&(
                 <div className="panel" style={{padding:16,marginTop:14}}>
-                  <div style={{fontSize:9,color:"#4b7a5e",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>Gemini Extraction · Raw Hole Data</div>
+                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Gemini Extraction · Raw Hole Data</div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
                     {holeData.yardages&&Object.entries(holeData.yardages).filter(([,v])=>v).map(([k,v])=>(
                       <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
-                        <div style={{fontSize:8,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em"}}>{k}</div>
-                        <div style={{fontSize:17,color:"#d1fae5",fontWeight:500,marginTop:2}}>{v}</div>
-                        <div style={{fontSize:8,color:"#374151"}}>yards</div>
+                        <div style={{fontSize:11,color:"#6dab82",textTransform:"uppercase",letterSpacing:"0.08em"}}>{k}</div>
+                        <div style={{fontSize:18,color:"#d1fae5",fontWeight:600,marginTop:2}}>{v}</div>
+                        <div style={{fontSize:11,color:"#9ca3af"}}>yards</div>
                       </div>
                     ))}
                     {holeData.green&&Object.entries({"Front":holeData.green.front_distance,"Mid":holeData.green.middle_distance,"Back":holeData.green.back_distance}).filter(([,v])=>v).map(([k,v])=>(
                       <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
-                        <div style={{fontSize:8,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em"}}>Green {k}</div>
-                        <div style={{fontSize:17,color:"#d1fae5",fontWeight:500,marginTop:2}}>{v}</div>
-                        <div style={{fontSize:8,color:"#374151"}}>yards</div>
+                        <div style={{fontSize:11,color:"#6dab82",textTransform:"uppercase",letterSpacing:"0.08em"}}>Green {k}</div>
+                        <div style={{fontSize:18,color:"#d1fae5",fontWeight:600,marginTop:2}}>{v}</div>
+                        <div style={{fontSize:11,color:"#9ca3af"}}>yards</div>
                       </div>
                     ))}
                   </div>
                   {holeData.hazards?.length>0&&(
                     <div style={{marginTop:10}}>
-                      <div style={{fontSize:9,color:"#6b7280",marginBottom:5}}>Hazards</div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
-                        {holeData.hazards.map((h,i)=><div key={i} style={{fontSize:9,color:"#9ca3af",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)",borderRadius:4,padding:"2px 7px"}}>{h.type} · {h.location}{h.distance_from_tee?` · ${h.distance_from_tee}yds`:""}</div>)}
+                      <div style={{fontSize:12,color:"#c4cdd8",marginBottom:6,fontWeight:600}}>Hazards</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                        {holeData.hazards.map((h,i)=><div key={i} style={{fontSize:12,color:"#fca5a5",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:4,padding:"3px 9px"}}>{h.type} · {h.location}{h.distance_from_tee?` · ${h.distance_from_tee}yds`:""}</div>)}
                       </div>
                     </div>
                   )}
-                  <button onClick={reset} style={{marginTop:12,fontSize:10,color:"#4b7a5e",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline"}}>← Analyze another hole</button>
+                  <button onClick={reset} style={{marginTop:12,fontSize:13,color:"#6dab82",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline"}}>← Analyze another hole</button>
                 </div>
               )}
             </div>

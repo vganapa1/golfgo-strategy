@@ -112,7 +112,7 @@ function Divider({ label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 10px" }}>
       <div style={{ height: 1, width: 10, background: "#2a4a35" }} />
-      <span style={{ fontSize: 8, color: "#4b7a5e", letterSpacing: "0.18em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{label}</span>
+      <span style={{ fontSize: 13, color: "#6dab82", letterSpacing: "0.18em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{label}</span>
       <div style={{ height: 1, flex: 1, background: "rgba(42,74,53,0.35)" }} />
     </div>
   );
@@ -121,9 +121,9 @@ function Divider({ label }) {
 function Tile({ label, value, sub, color, large }) {
   return (
     <div style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: large ? "13px 15px" : "9px 11px" }}>
-      <div style={{ fontSize: 8, color: "#4b7a5e", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, color: "#6dab82", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: large ? 23 : 16, fontWeight: 700, color: color || "#e4e9e6", lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 9, color: "#6b7280", marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 4 }}>{sub}</div>}
     </div>
   );
 }
@@ -134,7 +134,7 @@ function Alert({ color, icon, title, children }) {
     : { bg: "rgba(251,191,36,0.07)",   bd: "rgba(251,191,36,0.22)",   hd: "#fbbf24" };
   return (
     <div style={{ background: c.bg, border: `1px solid ${c.bd}`, borderRadius: 8, padding: "10px 12px" }}>
-      <div style={{ fontSize: 8, color: c.hd, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>{icon} {title}</div>
+      <div style={{ fontSize: 13, color: c.hd, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>{icon} {title}</div>
       {children}
     </div>
   );
@@ -150,12 +150,12 @@ function HeatGrid({ grid, compact }) {
     <div>
       <div style={{ display: "flex", gap: 3, paddingLeft: compact ? 27 : 34, marginBottom: 3 }}>
         {["L", "C", "R"].map(l => (
-          <div key={l} style={{ width: sz, textAlign: "center", fontSize: 8, color: "#374151" }}>{l}</div>
+          <div key={l} style={{ width: sz, textAlign: "center", fontSize: 13, color: "#9ca3af" }}>{l}</div>
         ))}
       </div>
       {grid.map((row, ri) => (
         <div key={ri} style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 3 }}>
-          <div style={{ width: compact ? 24 : 31, fontSize: 7, color: "#374151", textAlign: "right", paddingRight: 3, letterSpacing: "0.04em" }}>
+          <div style={{ width: compact ? 24 : 31, fontSize: 13, color: "#9ca3af", textAlign: "right", paddingRight: 3, letterSpacing: "0.04em" }}>
             {rowLabels[ri]}
           </div>
           {row.map((val, ci) => {
@@ -173,8 +173,8 @@ function HeatGrid({ grid, compact }) {
         </div>
       ))}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, paddingLeft: compact ? 27 : 34 }}>
-        <span style={{ fontSize: 7, color: "#4ade80" }}>best {max}</span>
-        <span style={{ fontSize: 7, color: "#f87171" }}>worst {min}</span>
+        <span style={{ fontSize: 13, color: "#4ade80" }}>best {max}</span>
+        <span style={{ fontSize: 13, color: "#f87171" }}>worst {min}</span>
       </div>
     </div>
   );
@@ -191,8 +191,8 @@ function OTTBars({ cats }) {
         return (
           <div key={cat.label}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-              <span style={{ fontSize: 9, color: "#9ca3af" }}>{cat.label}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: g.text }}>{cat.sq}</span>
+              <span style={{ fontSize: 12, color: "#9ca3af" }}>{cat.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: g.text }}>{cat.sq}</span>
             </div>
             <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${Math.max(0, pct)}%`, background: g.text, borderRadius: 3, boxShadow: `0 0 6px ${g.glow}`, transition: "width 0.7s cubic-bezier(0.34,1.56,0.64,1)" }} />
@@ -274,11 +274,11 @@ function MissDonut({ left, right, short, long_ }) {
         {segs.map(s => (
           <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 9, color: "#9ca3af" }}>{s.label}</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: s.color, marginLeft: "auto", paddingLeft: 10 }}>{s.pct}%</span>
+            <span style={{ fontSize: 12, color: "#9ca3af" }}>{s.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: s.color, marginLeft: "auto", paddingLeft: 10 }}>{s.pct}%</span>
           </div>
         ))}
-        <div style={{ fontSize: 8, color: "#374151", marginTop: 2 }}>* LH player: ClippD POV is mirrored</div>
+        <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 2 }}>* LH player: ClippD POV is mirrored</div>
       </div>
     </div>
   );
@@ -290,8 +290,8 @@ function BiasSlider({ label, bias, pct }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 9, color: "#6b7280" }}>{label}</span>
-        <span style={{ fontSize: 9, color, fontWeight: 600 }}>{bias}</span>
+        <span style={{ fontSize: 12, color: "#9ca3af" }}>{label}</span>
+        <span style={{ fontSize: 12, color, fontWeight: 600 }}>{bias}</span>
       </div>
       <div style={{ position: "relative", height: 7, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}>
         <div style={{ position: "absolute", top: 0, left: "50%", height: "100%", width: 1, background: "rgba(255,255,255,0.1)" }} />
@@ -310,8 +310,8 @@ function BiasSlider({ label, bias, pct }) {
         }} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
-        <span style={{ fontSize: 7, color: "#2a3a2f" }}>Conservative / Left</span>
-        <span style={{ fontSize: 7, color: "#2a3a2f" }}>Aggressive / Right</span>
+        <span style={{ fontSize: 13, color: "#9ca3af" }}>Conservative / Left</span>
+        <span style={{ fontSize: 13, color: "#9ca3af" }}>Aggressive / Right</span>
       </div>
     </div>
   );
@@ -348,12 +348,12 @@ export default function ClippdDashboard({ onClose }) {
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
-        .cd-tab{padding:6px 12px;border-radius:6px;font-size:10px;cursor:pointer;border:1px solid transparent;transition:all 0.14s;background:transparent;color:#6b7280;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px;letter-spacing:0.02em}
+        .cd-tab{padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid transparent;transition:all 0.14s;background:transparent;color:#9ca3af;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px;letter-spacing:0.02em}
         .cd-tab.on{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.25);color:#4ade80}
-        .cd-tab:hover:not(.on){background:rgba(255,255,255,0.03);color:#9ca3af}
-        .cd-pill{padding:3px 9px;border-radius:4px;font-size:9px;cursor:pointer;border:1px solid rgba(255,255,255,0.09);background:transparent;color:#6b7280;font-family:inherit;transition:all 0.13s}
+        .cd-tab:hover:not(.on){background:rgba(255,255,255,0.03);color:#c4cdd8}
+        .cd-pill{padding:5px 11px;border-radius:4px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.12);background:transparent;color:#9ca3af;font-family:inherit;transition:all 0.13s}
         .cd-pill.on{background:rgba(34,197,94,0.09);border-color:rgba(34,197,94,0.28);color:#4ade80}
-        .cd-pill:hover:not(.on){background:rgba(255,255,255,0.04);color:#9ca3af}
+        .cd-pill:hover:not(.on){background:rgba(255,255,255,0.04);color:#c4cdd8}
         .cd-in{animation:cd_in 0.26s ease-out}
         @keyframes cd_in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
         .cd-scroll::-webkit-scrollbar{width:3px}
@@ -366,17 +366,17 @@ export default function ClippdDashboard({ onClose }) {
           <div style={{ width: 30, height: 30, borderRadius: 7, background: "linear-gradient(135deg,#16a34a,#065f46)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>📊</div>
           <div>
             <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 14, fontWeight: 700, color: "#f0fdf4", lineHeight: 1 }}>ClippD Analytics</div>
-            <div style={{ fontSize: 8, color: "#4b7a5e", letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 2 }}>
+            <div style={{ fontSize: 13, color: "#6dab82", letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 2 }}>
               {d.player.name} · {d.player.handicap} · {d.player.hand}-Handed · Last {d.player.rounds} Rounds
             </div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ fontSize: 8, color: "#374151", background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 4, padding: "3px 8px" }}>
+          <div style={{ fontSize: 13, color: "#9ca3af", background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 4, padding: "3px 8px" }}>
             ⚠ ClippD L/R is mirrored for LH player
           </div>
           {onClose && (
-            <button onClick={onClose} style={{ background: "none", border: "none", color: "#4b7a5e", cursor: "pointer", fontSize: 15, padding: "2px 5px", fontFamily: "inherit" }}>✕</button>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: "#6dab82", cursor: "pointer", fontSize: 15, padding: "2px 5px", fontFamily: "inherit" }}>✕</button>
           )}
         </div>
       </div>
@@ -416,14 +416,14 @@ export default function ClippdDashboard({ onClose }) {
                 <Divider label="Approach Proximity" />
                 {[
                   { label: "Nolan avg", val: d.approach.proximity,      color: "#4ade80" },
-                  { label: "Tour T25",  val: d.approach.tour_proximity,  color: "#6b7280" },
+                  { label: "Tour T25",  val: d.approach.tour_proximity,  color: "#9ca3af" },
                 ].map(r => (
                   <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <span style={{ fontSize: 10, color: "#6b7280" }}>{r.label}</span>
+                    <span style={{ fontSize: 13, color: "#9ca3af" }}>{r.label}</span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: r.color }}>{r.val}</span>
                   </div>
                 ))}
-                <div style={{ marginTop: 8, fontSize: 9, color: "#4ade80" }}>Beats Tour T25 avg by ~1.5 ft</div>
+                <div style={{ marginTop: 8, fontSize: 12, color: "#4ade80" }}>Beats Tour T25 avg by ~1.5 ft</div>
               </div>
 
               {/* Putt volume */}
@@ -436,8 +436,8 @@ export default function ClippdDashboard({ onClose }) {
                 ].map(r => (
                   <div key={r.l} style={{ marginBottom: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                      <span style={{ fontSize: 9, color: "#9ca3af" }}>{r.l}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: r.c }}>{r.n}</span>
+                      <span style={{ fontSize: 12, color: "#9ca3af" }}>{r.l}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: r.c }}>{r.n}</span>
                     </div>
                     <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${(r.n / d.putting.total) * 100}%`, background: r.c, borderRadius: 3 }} />
@@ -453,7 +453,7 @@ export default function ClippdDashboard({ onClose }) {
                 <div style={{ fontSize: 12, color: "#fca5a5", fontWeight: 600 }}>{d.arg.focus.label}</div>
                 <div style={{ display: "flex", gap: 14, marginTop: 7 }}>
                   {[["Importance", d.arg.focus.importance],["Opportunity", d.arg.focus.opp],["SQ Trend", d.arg.focus.sq]].map(([k,v]) => (
-                    <div key={k}><div style={{ fontSize: 8, color: "#6b7280" }}>{k}</div><div style={{ fontSize: 10, color: "#e4e9e6" }}>{v}</div></div>
+                    <div key={k}><div style={{ fontSize: 13, color: "#9ca3af" }}>{k}</div><div style={{ fontSize: 13, color: "#e4e9e6" }}>{v}</div></div>
                   ))}
                 </div>
               </Alert>
@@ -461,7 +461,7 @@ export default function ClippdDashboard({ onClose }) {
                 <div style={{ fontSize: 12, color: "#fde68a", fontWeight: 600 }}>{d.putting.focus.label}</div>
                 <div style={{ display: "flex", gap: 14, marginTop: 7 }}>
                   {[["Importance", d.putting.focus.importance],["Opportunity", d.putting.focus.opp],["SQ Trend", `${d.putting.focus.sq} ↓`]].map(([k,v]) => (
-                    <div key={k}><div style={{ fontSize: 8, color: "#6b7280" }}>{k}</div><div style={{ fontSize: 10, color: "#e4e9e6" }}>{v}</div></div>
+                    <div key={k}><div style={{ fontSize: 13, color: "#9ca3af" }}>{k}</div><div style={{ fontSize: 13, color: "#e4e9e6" }}>{v}</div></div>
                   ))}
                 </div>
               </Alert>
@@ -492,10 +492,10 @@ export default function ClippdDashboard({ onClose }) {
                     const g = sqGrade(z.sq);
                     return (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <div style={{ width: 22, height: 22, borderRadius: 4, background: g.glow, border: `1px solid ${g.text}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: g.text, flexShrink: 0 }}>#{i+1}</div>
+                        <div style={{ width: 22, height: 22, borderRadius: 4, background: g.glow, border: `1px solid ${g.text}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: g.text, flexShrink: 0 }}>#{i+1}</div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, color: "#e4e9e6", fontWeight: 600 }}>{z.range} yds</div>
-                          <div style={{ fontSize: 9, color: "#4b7a5e" }}>prox: {z.prox}</div>
+                          <div style={{ fontSize: 13, color: "#e4e9e6", fontWeight: 600 }}>{z.range} yds</div>
+                          <div style={{ fontSize: 12, color: "#6dab82" }}>prox: {z.prox}</div>
                         </div>
                         <div style={{ fontSize: 18, fontWeight: 800, color: g.text }}>{z.sq}</div>
                       </div>
@@ -506,11 +506,11 @@ export default function ClippdDashboard({ onClose }) {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
                     <div>
                       <div style={{ fontSize: 12, color: "#fca5a5", fontWeight: 600 }}>{d.approach.avoid.range} yds</div>
-                      <div style={{ fontSize: 9, color: "#6b7280" }}>prox: {d.approach.avoid.prox}</div>
+                      <div style={{ fontSize: 12, color: "#9ca3af" }}>prox: {d.approach.avoid.prox}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 20, fontWeight: 800, color: "#f87171" }}>{d.approach.avoid.sq}</div>
-                      <div style={{ fontSize: 8, color: "#6b7280" }}>SQ</div>
+                      <div style={{ fontSize: 13, color: "#9ca3af" }}>SQ</div>
                     </div>
                   </div>
                 </Alert>
@@ -523,7 +523,7 @@ export default function ClippdDashboard({ onClose }) {
         {tab === "heatmaps" && (
           <div>
             <Divider label="Pin Location Heatmaps · Shot Quality" />
-            <div style={{ fontSize: 9, color: "#6b7280", marginBottom: 12, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 12, lineHeight: 1.7 }}>
               Grid viewed from behind green — top = back, bottom = front. Higher SQ = better performance to that pin.
               <span style={{ color: "#fbbf24", marginLeft: 6 }}>⚠ LH Nolan: ClippD "L" = real-world right.</span>
             </div>
@@ -536,7 +536,7 @@ export default function ClippdDashboard({ onClose }) {
 
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "start", marginBottom: 22 }}>
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 20 }} key={hmRange}>
-                <div style={{ fontSize: 11, color: "#4ade80", fontWeight: 600, marginBottom: 14, fontFamily: "'Playfair Display',serif" }}>
+                <div style={{ fontSize: 13, color: "#4ade80", fontWeight: 600, marginBottom: 14, fontFamily: "'Playfair Display',serif" }}>
                   {hmRange} yds · Pin Location Heatmap
                 </div>
                 <HeatGrid grid={d.heatmaps[hmRange].grid} />
@@ -549,28 +549,28 @@ export default function ClippdDashboard({ onClose }) {
                 return (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ background: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 10, padding: 14 }}>
-                      <div style={{ fontSize: 8, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Attack — Top 3</div>
+                      <div style={{ fontSize: 13, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Attack — Top 3</div>
                       {cells.slice(0,3).map((c,i) => (
                         <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(34,197,94,0.08)" }}>
-                          <span style={{ fontSize: 10, color: "#9ca3af" }}>{c.name}</span>
+                          <span style={{ fontSize: 13, color: "#9ca3af" }}>{c.name}</span>
                           <span style={{ fontSize: 15, fontWeight: 800, color: "#4ade80" }}>{c.v}</span>
                         </div>
                       ))}
                     </div>
                     <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 10, padding: 14 }}>
-                      <div style={{ fontSize: 8, color: "#f87171", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Bail — Bottom 3</div>
+                      <div style={{ fontSize: 13, color: "#f87171", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Bail — Bottom 3</div>
                       {cells.slice(-3).reverse().map((c,i) => (
                         <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(239,68,68,0.08)" }}>
-                          <span style={{ fontSize: 10, color: "#9ca3af" }}>{c.name}</span>
+                          <span style={{ fontSize: 13, color: "#9ca3af" }}>{c.name}</span>
                           <span style={{ fontSize: 15, fontWeight: 800, color: "#f87171" }}>{c.v}</span>
                         </div>
                       ))}
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: 10 }}>
-                      <div style={{ fontSize: 8, color: "#4b7a5e", marginBottom: 3 }}>Range spread</div>
+                      <div style={{ fontSize: 13, color: "#6dab82", marginBottom: 3 }}>Range spread</div>
                       <div style={{ fontSize: 12, color: "#e4e9e6" }}>
                         {Math.min(...flat)} – {Math.max(...flat)} SQ
-                        <span style={{ fontSize: 9, color: "#6b7280", marginLeft: 6 }}>({Math.max(...flat) - Math.min(...flat)} pt gap)</span>
+                        <span style={{ fontSize: 12, color: "#9ca3af", marginLeft: 6 }}>({Math.max(...flat) - Math.min(...flat)} pt gap)</span>
                       </div>
                     </div>
                   </div>
@@ -584,7 +584,7 @@ export default function ClippdDashboard({ onClose }) {
                 <div key={range} onClick={() => setHmRange(range)}
                   style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${hmRange === range ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.06)"}`, borderRadius: 10, padding: 12, cursor: "pointer", transition: "border-color 0.2s" }}>
                   <HeatGrid grid={hm.grid} compact />
-                  <div style={{ fontSize: 9, color: hmRange === range ? "#4ade80" : "#6b7280", textAlign: "center", marginTop: 6 }}>{range} yds</div>
+                  <div style={{ fontSize: 12, color: hmRange === range ? "#4ade80" : "#6b7280", textAlign: "center", marginTop: 6 }}>{range} yds</div>
                 </div>
               ))}
             </div>
@@ -597,7 +597,7 @@ export default function ClippdDashboard({ onClose }) {
             <Divider label="Off The Tee DNA · Last 20 Rounds" />
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "start" }}>
               <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 20 }}>
-                <div style={{ fontSize: 9, color: "#4b7a5e", textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center", marginBottom: 10 }}>Avg Shot Quality</div>
+                <div style={{ fontSize: 12, color: "#6dab82", textTransform: "uppercase", letterSpacing: "0.1em", textAlign: "center", marginBottom: 10 }}>Avg Shot Quality</div>
                 <Radar cats={d.ott.categories} />
               </div>
 
@@ -608,8 +608,8 @@ export default function ClippdDashboard({ onClose }) {
                   <OTTBars cats={d.ott.categories} />
                 </div>
                 <div style={{ background: "rgba(34,197,94,0.04)", border: "1px solid rgba(34,197,94,0.12)", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 8, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Insight</div>
-                  <div style={{ fontSize: 10, color: "#d1fae5", lineHeight: 1.7 }}>
+                  <div style={{ fontSize: 13, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Insight</div>
+                  <div style={{ fontSize: 13, color: "#d1fae5", lineHeight: 1.7 }}>
                     Peak on Par 4 350-400 yds (SQ 108). OTT is a net positive — strokes are not lost off the tee. Strategy: leverage this strength to engineer ideal approach windows.
                   </div>
                 </div>
@@ -626,9 +626,9 @@ export default function ClippdDashboard({ onClose }) {
               <Tile large label="Player Quality" value={d.arg.pq} color={sqGrade(d.arg.pq).text} sub={`Tour T25: ${d.arg.tour_pq}`} />
               <Tile large label="Importance" value={`${d.arg.importance}%`} sub="of overall scoring" />
               <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "13px 15px" }}>
-                <div style={{ fontSize: 8, color: "#f87171", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Gap vs Tour T25</div>
+                <div style={{ fontSize: 13, color: "#f87171", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Gap vs Tour T25</div>
                 <div style={{ fontSize: 23, fontWeight: 800, color: "#f87171" }}>-{d.arg.tour_pq - d.arg.pq}</div>
-                <div style={{ fontSize: 9, color: "#6b7280" }}>PQ points below benchmark</div>
+                <div style={{ fontSize: 12, color: "#9ca3af" }}>PQ points below benchmark</div>
               </div>
             </div>
 
@@ -641,12 +641,12 @@ export default function ClippdDashboard({ onClose }) {
                       {lie.icon === "green" ? "🌿" : lie.icon === "tan" ? "🌾" : "🏖️"}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 10, color: "#9ca3af" }}>{lie.label}</div>
-                      <div style={{ fontSize: 9, color: "#4b7a5e" }}>Up & Down: <span style={{ color: "#e4e9e6" }}>{lie.updown}</span></div>
+                      <div style={{ fontSize: 13, color: "#9ca3af" }}>{lie.label}</div>
+                      <div style={{ fontSize: 12, color: "#6dab82" }}>Up & Down: <span style={{ color: "#e4e9e6" }}>{lie.updown}</span></div>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: sgColor(lie.sg) }}>{lie.sg > 0 ? "+" : ""}{lie.sg.toFixed(2)}</div>
-                      <div style={{ fontSize: 8, color: "#4b7a5e" }}>SG:ARG</div>
+                      <div style={{ fontSize: 13, color: "#6dab82" }}>SG:ARG</div>
                     </div>
                   </div>
                 ))}
@@ -657,13 +657,13 @@ export default function ClippdDashboard({ onClose }) {
                   <div style={{ fontSize: 12, color: "#fca5a5", fontWeight: 600, marginTop: 3 }}>{d.arg.focus.label}</div>
                   <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
                     {[["Importance", d.arg.focus.importance],["Opportunity", d.arg.focus.opp],["SQ", d.arg.focus.sq]].map(([k,v]) => (
-                      <div key={k}><div style={{ fontSize: 8, color: "#6b7280" }}>{k}</div><div style={{ fontSize: 10, color: "#e4e9e6" }}>{v}</div></div>
+                      <div key={k}><div style={{ fontSize: 13, color: "#9ca3af" }}>{k}</div><div style={{ fontSize: 13, color: "#e4e9e6" }}>{v}</div></div>
                     ))}
                   </div>
                 </Alert>
                 <div style={{ background: "rgba(34,197,94,0.04)", border: "1px solid rgba(34,197,94,0.12)", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 8, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Key Insight</div>
-                  <div style={{ fontSize: 10, color: "#d1fae5", lineHeight: 1.7 }}>
+                  <div style={{ fontSize: 13, color: "#4ade80", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Key Insight</div>
+                  <div style={{ fontSize: 13, color: "#d1fae5", lineHeight: 1.7 }}>
                     Outperforms from <span style={{ color: "#4ade80" }}>rough (+0.09)</span> and <span style={{ color: "#4ade80" }}>sand (+0.16)</span> but loses from <span style={{ color: "#f87171" }}>fairway (-0.31)</span>. ARG Fairway = high-opportunity improvement area.
                   </div>
                 </div>
@@ -693,10 +693,10 @@ export default function ClippdDashboard({ onClose }) {
                   ["Dist Made",        d.putting.dist_made,        "total 20 rds"],
                 ].map(([label, val, sub]) => (
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                    <span style={{ fontSize: 10, color: "#6b7280" }}>{label}</span>
+                    <span style={{ fontSize: 13, color: "#9ca3af" }}>{label}</span>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: "#e4e9e6" }}>{val}</div>
-                      {sub && <div style={{ fontSize: 8, color: "#374151" }}>{sub}</div>}
+                      {sub && <div style={{ fontSize: 13, color: "#9ca3af" }}>{sub}</div>}
                     </div>
                   </div>
                 ))}
@@ -707,7 +707,7 @@ export default function ClippdDashboard({ onClose }) {
                   <div style={{ fontSize: 12, color: "#fde68a", fontWeight: 600, marginTop: 3 }}>{d.putting.focus.label}</div>
                   <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
                     {[["Importance", d.putting.focus.importance],["Opportunity", d.putting.focus.opp],["SQ Trend", `${d.putting.focus.sq} ↓`]].map(([k,v]) => (
-                      <div key={k}><div style={{ fontSize: 8, color: "#6b7280" }}>{k}</div><div style={{ fontSize: 10, color: "#e4e9e6" }}>{v}</div></div>
+                      <div key={k}><div style={{ fontSize: 13, color: "#9ca3af" }}>{k}</div><div style={{ fontSize: 13, color: "#e4e9e6" }}>{v}</div></div>
                     ))}
                   </div>
                 </Alert>
@@ -720,8 +720,8 @@ export default function ClippdDashboard({ onClose }) {
                   ].map(r => (
                     <div key={r.l} style={{ marginBottom: 7 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <span style={{ fontSize: 9, color: r.c }}>{r.l}</span>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: r.c }}>{r.n}</span>
+                        <span style={{ fontSize: 12, color: r.c }}>{r.l}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: r.c }}>{r.n}</span>
                       </div>
                       <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
                         <div style={{ height: "100%", width: `${(r.n / d.putting.total) * 100}%`, background: r.c, borderRadius: 3 }} />
@@ -739,11 +739,11 @@ export default function ClippdDashboard({ onClose }) {
               ))}
             </div>
             <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: 16 }} key={pRange}>
-              <div style={{ fontSize: 10, color: "#4ade80", marginBottom: 14, fontWeight: 600 }}>{pRange}</div>
+              <div style={{ fontSize: 13, color: "#4ade80", marginBottom: 14, fontWeight: 600 }}>{pRange}</div>
               {d.putting.profiles[pRange].map(m => (
                 <BiasSlider key={m.label} label={m.label} bias={m.bias} pct={m.pct} />
               ))}
-              <div style={{ marginTop: 6, fontSize: 8, color: "#2a3a2f", lineHeight: 1.6 }}>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#9ca3af", lineHeight: 1.6 }}>
                 Slider center = neutral · Left = conservative/left bias · Right = aggressive/right bias
               </div>
             </div>
