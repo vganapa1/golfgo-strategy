@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import ClippdDashboard from "./ClippdDashboard";
 
-const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+const CLAUDE_MODEL = "claude-sonnet-4-6-20250217";
 
 const GOAL_OPTIONS = ["eagle attempt","birdie","par protection","bogey avoidance","make cut"];
 
@@ -61,25 +61,53 @@ function classifyHole(holeData, playerProfile) {
   return "par4_medium";
 }
 
+// System instruction: tells Gemini HOW to behave before it sees the image.
+const GEMINI_SYSTEM_INSTRUCTION = `You are a precise spatial data extractor specialized in golf yardage books. Your goal is to convert visual hole maps into a structured JSON format for a golf strategy application.
+
+Rules:
+1. No Hallucinations: Use null if a value is not explicitly labeled or clearly inferable.
+2. Unit Consistency: All distances must be integers in Yards.
+3. Hazard Categorization: Group hazards by type (Bunker, Water, OB, Trees).
+4. Output Format: Return ONLY the raw JSON object. Do not include markdown formatting, backticks, or any preamble.`;
+
 async function extractHoleDataWithGemini(base64Image, mimeType) {
-  const prompt = `Analyze this yardage book page and extract ALL visible information. Return ONLY valid JSON:
+  const userPrompt = `<task>
+Analyze the attached yardage book page and extract ALL visible information.
+</task>
+
+<schema>
 {
-  "hole_number": null, "par": null,
-  "yardages": { "championship": null, "back": null, "middle": null, "forward": null },
-  "hazards": [{ "type": "", "location": "", "distance_from_tee": null, "carry_distance": null, "description": "" }],
-  "landing_zones": [{ "zone_id": "A", "distance_from_tee": null, "width": "", "description": "" }],
-  "green": { "depth_yards": null, "width_yards": null, "front_distance": null, "middle_distance": null, "back_distance": null, "slope_notes": "" },
-  "dogleg": { "exists": false, "direction": "none", "apex_distance": null },
-  "elevation_change": "unknown", "notes": ""
+  "hole_number": integer,
+  "par": integer,
+  "yardages": { "championship": integer, "back": integer, "middle": integer, "forward": integer },
+  "hazards": [{ "type": "Bunker | Water | OB | Trees", "distance_to_carry": integer, "side": "left | right | center | cross", "description": "" }],
+  "landing_zones": [{ "label": "", "yardage": integer, "width": "narrow | moderate | wide" }],
+  "green": { "width": integer, "depth": integer, "front_distance": integer, "middle_distance": integer, "back_distance": integer, "key_slopes": [] },
+  "dogleg": { "direction": "left | right | none", "distance_to_pivot": integer },
+  "elevation_change": "uphill | downhill | flat | unknown",
+  "notes": []
 }
-Be precise. Use null if not visible. Return ONLY the JSON, no markdown, no backticks.`;
+</schema>`;
 
   const res = await fetch("/api/extract", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: base64Image } }] }],
-      generationConfig: { temperature: 0.1 },
+      system_instruction: { parts: [{ text: GEMINI_SYSTEM_INSTRUCTION }] },
+      contents: [{
+        parts: [
+          { text: userPrompt },
+          { inline_data: { mime_type: mimeType, data: base64Image } },
+        ],
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        response_mime_type: "application/json",
+        media_resolution: "HIGH", // MANDATORY for small text in yardage books
+        thinkingConfig: {
+          thinkingLevel: "MEDIUM", // Activate 'Thinking' for complex spatial reasoning
+        },
+      },
     }),
   });
   if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || "Gemini error"); }
@@ -603,7 +631,7 @@ export default function GolfGoStrategyGenerator() {
                   {holeData?.par&&<span style={{color:"#6dab82",fontSize:14,marginLeft:8}}>Par {holeData.par}</span>}
                 </div>
                 {holeData?.yardages?.back&&<GlowBadge color="emerald">{holeData.yardages.back} yds</GlowBadge>}
-                {holeData?.dogleg?.exists&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
+                {(holeData?.dogleg?.exists||(holeData?.dogleg?.direction&&holeData.dogleg.direction!=="none"))&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
                 {holeData?.elevation_change&&holeData.elevation_change!=="flat"&&<GlowBadge color="sky">{holeData.elevation_change}</GlowBadge>}
                 {detectedCategory&&activeGoal&&(
                   <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
@@ -663,7 +691,7 @@ export default function GolfGoStrategyGenerator() {
                     <div style={{marginTop:10}}>
                       <div style={{fontSize:12,color:"#c4cdd8",marginBottom:6,fontWeight:600}}>Hazards</div>
                       <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                        {holeData.hazards.map((h,i)=><div key={i} style={{fontSize:12,color:"#fca5a5",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:4,padding:"3px 9px"}}>{h.type} · {h.location}{h.distance_from_tee?` · ${h.distance_from_tee}yds`:""}</div>)}
+                        {holeData.hazards.map((h,i)=><div key={i} style={{fontSize:12,color:"#fca5a5",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:4,padding:"3px 9px"}}>{h.type} · {h.side||h.location}{(h.distance_to_carry??h.distance_from_tee)?` · ${h.distance_to_carry??h.distance_from_tee}yds`:""}</div>)}
                       </div>
                     </div>
                   )}
