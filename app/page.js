@@ -161,9 +161,12 @@ PLAYER PROFILE:
 ${JSON.stringify(playerProfile, null, 2)}
 
 WEATHER:
-${JSON.stringify(weather, null, 2)}
+- Wind effect on this hole: ${weather.wind_effect} (${weather.wind_tier === "light" ? "light, 1–10 mph" : weather.wind_tier === "moderate" ? "moderate, 11–20 mph" : "strong, 20+ mph"})
+- Temperature: ${weather.temperature_f}°F
+- Green speed: Stimp ${weather.green_speed_stimp}
+- Course firmness: ${weather.firmness}
 
-CONDITIONS:
+COURSE CONDITIONS:
 ${JSON.stringify(conditions, null, 2)}
 
 - Calibrate every decision to: ${activeGoal}
@@ -302,7 +305,7 @@ export default function GolfGoStrategyGenerator() {
   const [imagePreview,setImagePreview]=useState(null);
   const [imageBase64,setImageBase64]=useState(null);
   const [imageMime,setImageMime]=useState("image/jpeg");
-  const [weather,setWeather]=useState({wind_speed_mph:10,wind_direction:"into",temperature_f:72,firmness:"normal",green_speed_stimp:11});
+  const [weather,setWeather]=useState({wind_effect:"into",wind_tier:"moderate",temperature_f:72,firmness:"normal",green_speed_stimp:11});
   const [conditions,setConditions]=useState({pin_position:"middle-center",rough_height_inches:2.5,fairway_roll_yards:6});
   const [player,setPlayer]=useState(DEFAULT_PLAYER);
   const [editingPlayer,setEditingPlayer]=useState(false);
@@ -359,7 +362,6 @@ export default function GolfGoStrategyGenerator() {
 
   const reset=()=>{setPhase("idle");setImageFile(null);setImagePreview(null);setImageBase64(null);setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);};
 
-  const windLabels=["into","downwind","left-to-right","right-to-left","crosswind"];
   const pinLabels=["front-left","front-center","front-right","middle-left","middle-center","middle-right","back-left","back-center","back-right"];
   const goalColor=GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"];
   const catMeta=HOLE_CATEGORIES.find(c=>c.key===detectedCategory);
@@ -438,13 +440,67 @@ export default function GolfGoStrategyGenerator() {
             }
           </div>
 
-          {/* Weather */}
+          {/* Weather — Wind Rose + Speed Tier */}
           <div className="panel" style={{padding:14}}>
-            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Weather</div>
+            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:12,fontWeight:600}}>Weather</div>
+            {/* Wind Rose */}
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:12,color:"#c4cdd8",marginBottom:8}}>Wind effect on this hole</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,maxWidth:200,margin:"0 auto"}}>
+                {[
+                  {key:"into-L",label:"↙ Into-L",pos:0},
+                  {key:"into",label:"↓ Into",pos:1},
+                  {key:"into-R",label:"↘ Into-R",pos:2},
+                  {key:"R→L",label:"← R→L",pos:3},
+                  {key:null,label:"⛳",pos:4},
+                  {key:"L→R",label:"L→R →",pos:5},
+                  {key:"down-L",label:"↖ Down-L",pos:6},
+                  {key:"down",label:"↑ Down",pos:7},
+                  {key:"down-R",label:"↗ Down-R",pos:8},
+                ].map(({key,label,pos})=>{
+                  if(key===null)return(
+                    <div key={pos} style={{padding:"8px 4px",borderRadius:6,fontSize:14,textAlign:"center",background:"rgba(34,197,94,0.06)",border:"1px solid rgba(34,197,94,0.15)",color:"#6dab82",display:"flex",alignItems:"center",justifyContent:"center"}}>{label}</div>
+                  );
+                  const active=weather.wind_effect===key;
+                  return(
+                    <button key={pos} onClick={()=>setWeather({...weather,wind_effect:key})}
+                      style={{padding:"7px 4px",borderRadius:6,fontSize:10,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.12s",
+                        background:active?"rgba(96,165,250,0.15)":"rgba(255,255,255,0.03)",
+                        border:`1px solid ${active?"rgba(96,165,250,0.45)":"rgba(255,255,255,0.07)"}`,
+                        color:active?"#93c5fd":"#9ca3af",fontWeight:active?500:400,lineHeight:1.3}}>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"#60a5fa"}}>{weather.wind_effect?`Wind: ${weather.wind_effect}`:<span style={{color:"#9ca3af"}}>tap a direction</span>}</div>
+            </div>
+            {/* Wind Speed Tier */}
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:12,color:"#c4cdd8",marginBottom:6}}>Wind strength</div>
+              <div style={{display:"flex",gap:5}}>
+                {[
+                  {key:"light",label:"🟢 Light",sub:"1–10 mph"},
+                  {key:"moderate",label:"🟡 Moderate",sub:"11–20 mph"},
+                  {key:"strong",label:"🔴 Strong",sub:"20+ mph"},
+                ].map(tier=>{
+                  const active=weather.wind_tier===tier.key;
+                  return(
+                    <button key={tier.key} onClick={()=>setWeather({...weather,wind_tier:tier.key})}
+                      style={{flex:1,padding:"7px 4px",borderRadius:6,fontSize:10,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.12s",lineHeight:1.4,
+                        background:active?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.02)",
+                        border:`1px solid ${active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
+                        color:active?"#e4e9e6":"#9ca3af"}}>
+                      <div>{tier.label}</div>
+                      <div style={{fontSize:9,opacity:0.7,marginTop:2}}>{tier.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Temp / Stimp / Firmness */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Wind (mph)</div><input type="number" className="input-field" value={weather.wind_speed_mph} onChange={e=>setWeather({...weather,wind_speed_mph:+e.target.value})}/></div>
               <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Temp (°F)</div><input type="number" className="input-field" value={weather.temperature_f} onChange={e=>setWeather({...weather,temperature_f:+e.target.value})}/></div>
-              <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Wind Dir</div><select className="input-field" value={weather.wind_direction} onChange={e=>setWeather({...weather,wind_direction:e.target.value})}>{windLabels.map(w=><option key={w}>{w}</option>)}</select></div>
               <div><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Stimp</div><input type="number" className="input-field" value={weather.green_speed_stimp} onChange={e=>setWeather({...weather,green_speed_stimp:+e.target.value})}/></div>
               <div style={{gridColumn:"span 2"}}><div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Firmness</div><select className="input-field" value={weather.firmness} onChange={e=>setWeather({...weather,firmness:e.target.value})}>{["soft","normal","firm","hard"].map(f=><option key={f}>{f}</option>)}</select></div>
             </div>
@@ -640,7 +696,7 @@ export default function GolfGoStrategyGenerator() {
                     <span style={{fontSize:12,color:goalColor.text,fontWeight:600}}>{activeGoal}</span>
                   </div>
                 )}
-                <span style={{marginLeft:"auto",fontSize:12,color:"#6dab82"}}>{player.name} · {weather.wind_speed_mph}mph {weather.wind_direction} · Pin {conditions.pin_position}</span>
+                <span style={{marginLeft:"auto",fontSize:12,color:"#6dab82"}}>{player.name} · {weather.wind_tier} {weather.wind_effect} · Pin {conditions.pin_position}</span>
               </div>
 
               <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
