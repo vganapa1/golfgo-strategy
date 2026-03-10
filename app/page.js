@@ -30,6 +30,22 @@ const GOAL_COLORS = {
   "make cut":        { bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.35)",  text: "#f87171" },
 };
 
+// ─── Player DNA ───────────────────────────────────────────────────────────────
+const SHOT_SHAPES = [
+  { value: "draw", label: "Draw", note: "Right-to-left (RH) / Left-to-right (LH)" },
+  { value: "fade", label: "Fade", note: "Left-to-right (RH) / Right-to-left (LH)" },
+  { value: "straight", label: "Straight", note: "Minimal lateral movement" },
+  { value: "strong_draw", label: "Strong Draw", note: "Significant curvature" },
+  { value: "strong_fade", label: "Strong Fade", note: "Significant curvature" },
+];
+const BALL_FLIGHTS = [
+  { value: "tumbler", label: "Tumbler", icon: "🔽", note: "Below avg spin & apex", implications: "Plays shorter, more run-out, wind-resistant, less stopping power." },
+  { value: "floater", label: "Floater", icon: "🎈", note: "Above avg spin & apex", implications: "Vulnerable to headwinds, high stopping power. Adjust 1-2 clubs into wind." },
+  { value: "riser", label: "Riser", icon: "📈", note: "High spin, low apex, low launch", implications: "Excellent wind performance off tee. Low launch clears hazards." },
+  { value: "knuckler", label: "Knuckler", icon: "🌀", note: "Low spin, high apex, high launch", implications: "Susceptible to crosswinds. Less green-holding at distance." },
+];
+const DEFAULT_PLAYER_DNA = { dexterity: "left", stock_shape: "fade", ball_flight: "tumbler", notes: "" };
+
 function classifyHole(holeData, playerProfile) {
   const par   = holeData?.par;
   const yards = holeData?.yardages?.back || holeData?.yardages?.middle || 0;
@@ -72,8 +88,10 @@ Be precise. Use null if not visible. Return ONLY the JSON, no markdown, no backt
   return JSON.parse(text.replace(/```json|```/g, "").trim());
 }
 
-async function generateStrategyWithClaude(holeData, playerProfile, weather, conditions, gamePlan, detectedCategory, activeGoal) {
+async function generateStrategyWithClaude(holeData, playerProfile, playerDna, weather, conditions, gamePlan, detectedCategory, activeGoal) {
   const catMeta = HOLE_CATEGORIES.find(c => c.key === detectedCategory);
+  const shapeMeta = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
+  const flightMeta = BALL_FLIGHTS.find(f => f.value === playerDna.ball_flight);
   const res = await fetch("/api/strategy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -84,11 +102,11 @@ async function generateStrategyWithClaude(holeData, playerProfile, weather, cond
 
 KEY RULES:
 1. SCORING GOAL FIRST: Open HOLE OVERVIEW by stating the scoring goal (${activeGoal}) and WHY this hole is categorized as "${catMeta?.label}". Make intent clear from sentence one.
-2. DIRECTIONAL AWARENESS: Player is left-handed. All real-world miss directions in the profile are already corrected. Use as stated.
+2. DIRECTIONAL AWARENESS: Player is ${playerDna.dexterity}-handed. All real-world miss directions in the profile are already corrected. Use as stated.
 3. APPROACH DISTANCE: Engineer tee shot to leave optimal approach yardage per scoring zones. This is the #1 lever.
 4. PIN HEATMAPS: Cross-reference pin position with heatmap SQ for that distance. State score — attack or bail.
 5. TEE CLUB: Use FIR% and miss data, not just distance.
-6. GOAL-CALIBRATED AGGRESSION: Entire strategy calibrated to the scoring goal.
+6. PLAYER DNA: Factor ball flight archetype into every club recommendation. A Tumbler needs different targets than a Floater on firm greens. Account for stock shot shape when describing target lines and miss management.
 
 Format: HOLE OVERVIEW, TEE SHOT, APPROACH, SCORING ZONE, RISK/REWARD, KEY NUMBERS. Bullet points. Reference yardages, clubs, heatmap SQ scores.`,
       messages: [{
@@ -100,6 +118,13 @@ HOLE CATEGORY: ${catMeta?.label} (${catMeta?.sub})
 
 COACH GAME PLAN:
 ${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label, gamePlan[c.key]])), null, 2)}
+
+PLAYER DNA:
+- Dexterity: ${playerDna.dexterity}-handed
+- Stock Shot Shape: ${shapeMeta?.label || playerDna.stock_shape} — ${shapeMeta?.note || ""}
+- Ball Flight: ${flightMeta?.label || playerDna.ball_flight} (${flightMeta?.note || ""})
+  · ${flightMeta?.implications || ""}
+${playerDna.notes ? `- Coach Notes: ${playerDna.notes}` : ""}
 
 HOLE DATA:
 ${JSON.stringify(holeData, null, 2)}
@@ -115,7 +140,8 @@ ${JSON.stringify(conditions, null, 2)}
 
 - Calibrate every decision to: ${activeGoal}
 - Check pin_location_heatmaps for pin "${conditions.pin_position}" and state its SQ score
-- Compare tee clubs by FIR% not just distance`,
+- Compare tee clubs by FIR% not just distance
+- Factor ball flight archetype into club selection and target lines`,
       }],
     }),
   });
@@ -253,6 +279,8 @@ export default function GolfGoStrategyGenerator() {
   const [player,setPlayer]=useState(DEFAULT_PLAYER);
   const [editingPlayer,setEditingPlayer]=useState(false);
   const [playerJson,setPlayerJson]=useState(()=>JSON.stringify(DEFAULT_PLAYER,null,2));
+  const [playerDna,setPlayerDna]=useState(DEFAULT_PLAYER_DNA);
+  const [showDna,setShowDna]=useState(true);
   const [gamePlan,setGamePlan]=useState(DEFAULT_GAME_PLAN);
   const [detectedCategory,setDetectedCategory]=useState(null);
   const [activeGoal,setActiveGoal]=useState(null);
@@ -286,7 +314,7 @@ export default function GolfGoStrategyGenerator() {
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
       setPhase("strategizing");
-      const txt=await generateStrategyWithClaude(extracted,player,weather,conditions,gamePlan,category,goal);
+      const txt=await generateStrategyWithClaude(extracted,player,playerDna,weather,conditions,gamePlan,category,goal);
       setParsedStrategy(parseStrategy(txt));setPhase("done");setActiveSection(0);
     }catch(e){setError(e.message);setPhase("error");}
   };
@@ -296,7 +324,7 @@ export default function GolfGoStrategyGenerator() {
     setError("");setParsedStrategy([]);
     try{
       setPhase("strategizing");
-      const txt=await generateStrategyWithClaude(holeData,player,weather,conditions,gamePlan,detectedCategory,activeGoal);
+      const txt=await generateStrategyWithClaude(holeData,player,playerDna,weather,conditions,gamePlan,detectedCategory,activeGoal);
       setParsedStrategy(parseStrategy(txt));setPhase("done");setActiveSection(0);
     }catch(e){setError(e.message);setPhase("error");}
   };
@@ -427,6 +455,88 @@ export default function GolfGoStrategyGenerator() {
               <StatRow label="Scrambling" value={`${((player.around_green?.scrambling_pct||0)*100).toFixed(0)}%`}/>
               <StatRow label="Make% 6-10ft" value={`${((player.putting?.zones?.["6-10ft"]?.make_rate_pct||0)*100).toFixed(0)}%`}/>
             </>}
+          </div>
+
+          {/* Player DNA */}
+          <div className="panel" style={{padding:14}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:showDna?12:0}}>
+              <div>
+                <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:600}}>Player DNA</div>
+                <div style={{fontSize:12,color:"#9ca3af",marginTop:2}}>Shot shape & ball flight</div>
+              </div>
+              <button onClick={()=>setShowDna(!showDna)} style={{fontSize:12,color:"#9ca3af",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>{showDna?"collapse ↑":"expand ↓"}</button>
+            </div>
+            {!showDna&&(
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                <span style={{fontSize:12,padding:"3px 8px",borderRadius:3,background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",color:"#4ade80"}}>{playerDna.dexterity==="left"?"LH":"RH"}</span>
+                <span style={{fontSize:12,padding:"3px 8px",borderRadius:3,background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.2)",color:"#93c5fd"}}>{SHOT_SHAPES.find(s=>s.value===playerDna.stock_shape)?.label||playerDna.stock_shape}</span>
+                <span style={{fontSize:12,padding:"3px 8px",borderRadius:3,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",color:"#fcd34d"}}>{BALL_FLIGHTS.find(f=>f.value===playerDna.ball_flight)?.label||playerDna.ball_flight}</span>
+              </div>
+            )}
+            {showDna&&(
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                <div>
+                  <div style={{fontSize:12,color:"#c4cdd8",marginBottom:5}}>Dexterity</div>
+                  <div style={{display:"flex",gap:6}}>
+                    {["left","right"].map(hand=>(
+                      <button key={hand} onClick={()=>setPlayerDna({...playerDna,dexterity:hand})}
+                        style={{flex:1,padding:"6px 0",borderRadius:6,fontSize:12,cursor:"pointer",fontFamily:"inherit",transition:"all 0.14s",
+                          background:playerDna.dexterity===hand?"rgba(34,197,94,0.12)":"rgba(255,255,255,0.03)",
+                          border:`1px solid ${playerDna.dexterity===hand?"rgba(34,197,94,0.35)":"rgba(255,255,255,0.08)"}`,
+                          color:playerDna.dexterity===hand?"#4ade80":"#9ca3af"}}>
+                        {hand==="left"?"Left-handed":"Right-handed"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:"#c4cdd8",marginBottom:5}}>Stock Shot Shape</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
+                    {SHOT_SHAPES.map(shape=>{
+                      const active=playerDna.stock_shape===shape.value;
+                      return (
+                        <button key={shape.value} onClick={()=>setPlayerDna({...playerDna,stock_shape:shape.value})}
+                          style={{padding:"6px 8px",borderRadius:6,fontSize:11,cursor:"pointer",fontFamily:"inherit",transition:"all 0.14s",textAlign:"left",
+                            background:active?"rgba(96,165,250,0.1)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${active?"rgba(96,165,250,0.35)":"rgba(255,255,255,0.08)"}`,
+                            color:active?"#93c5fd":"#9ca3af",gridColumn:shape.value==="straight"?"span 2":"span 1"}}>
+                          {shape.label}
+                          {active&&<div style={{fontSize:10,color:"#60a5fa",marginTop:2,lineHeight:1.3}}>{shape.note}</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:"#c4cdd8",marginBottom:5}}>Ball Flight Archetype</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                    {BALL_FLIGHTS.map(flight=>{
+                      const active=playerDna.ball_flight===flight.value;
+                      return (
+                        <button key={flight.value} onClick={()=>setPlayerDna({...playerDna,ball_flight:flight.value})}
+                          style={{padding:"7px 10px",borderRadius:6,fontSize:11,cursor:"pointer",fontFamily:"inherit",transition:"all 0.14s",textAlign:"left",
+                            background:active?"rgba(251,191,36,0.08)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${active?"rgba(251,191,36,0.3)":"rgba(255,255,255,0.08)"}`,
+                            color:active?"#fcd34d":"#9ca3af"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <span style={{fontSize:12}}>{flight.icon}</span>
+                            <span style={{fontWeight:active?500:400}}>{flight.label}</span>
+                            <span style={{fontSize:10,color:active?"#92400e":"#9ca3af",marginLeft:"auto"}}>{flight.note}</span>
+                          </div>
+                          {active&&<div style={{fontSize:10,color:"#d97706",marginTop:5,lineHeight:1.5,borderTop:"1px solid rgba(251,191,36,0.15)",paddingTop:5}}>{flight.implications}</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:"#c4cdd8",marginBottom:4}}>Coach Notes <span style={{color:"#9ca3af"}}>(optional)</span></div>
+                  <textarea className="input-field" placeholder="e.g. struggles with low punch shots, excellent at shaping..."
+                    value={playerDna.notes} onChange={e=>setPlayerDna({...playerDna,notes:e.target.value})}
+                    style={{height:56,resize:"none",fontSize:12,lineHeight:1.5}}/>
+                </div>
+              </div>
+            )}
           </div>
 
           <button className="glow-btn" style={{padding:"12px 16px",borderRadius:8,fontSize:13,color:"#f0fdf4",fontFamily:"inherit",fontWeight:500,width:"100%"}} disabled={phase==="extracting"||phase==="strategizing"} onClick={runPipeline}>
