@@ -103,7 +103,7 @@ Analyze the attached yardage book page and extract ALL visible information.
       generationConfig: {
         temperature: 0.1,
         response_mime_type: "application/json",
-        media_resolution: "HIGH",
+        media_resolution: "MEDIA_RESOLUTION_HIGH",
       },
     }),
   });
