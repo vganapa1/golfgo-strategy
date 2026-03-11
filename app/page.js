@@ -1,8 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from "react";
-import ClippdDashboard from "./ClippdDashboard";
 
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+const GPT4O_MODEL = "gpt-4o";
 
 const GOAL_OPTIONS = ["eagle attempt","birdie","par protection","bogey avoidance","make cut"];
 
@@ -61,84 +60,36 @@ function classifyHole(holeData, playerProfile) {
   return "par4_medium";
 }
 
-// System instruction: tells Gemini HOW to behave before it sees the image.
-const GEMINI_SYSTEM_INSTRUCTION = `You are a precise spatial data extractor specialized in golf yardage books. Your goal is to convert visual hole maps into a structured JSON format for a golf strategy application.
+// ─── GPT-4o Vision + Strategy (single call) ──────────────────────────────────
 
-Rules:
-1. No Hallucinations: Use null if a value is not explicitly labeled or clearly inferable.
-2. Unit Consistency: All distances must be integers in Yards.
-3. Hazard Categorization: Group hazards by type (Bunker, Water, OB, Trees).
-4. Output Format: Return ONLY the raw JSON object. Do not include markdown formatting, backticks, or any preamble.`;
-
-async function extractHoleDataWithGemini(base64Image, mimeType) {
-  const userPrompt = `<task>
-Analyze the attached yardage book page and extract ALL visible information.
-</task>
-
-<schema>
-{
-  "hole_number": integer,
-  "par": integer,
-  "yardages": { "championship": integer, "back": integer, "middle": integer, "forward": integer },
-  "hazards": [{ "type": "Bunker | Water | OB | Trees", "distance_to_carry": integer, "side": "left | right | center | cross", "description": "" }],
-  "landing_zones": [{ "label": "", "yardage": integer, "width": "narrow | moderate | wide" }],
-  "green": { "width": integer, "depth": integer, "front_distance": integer, "middle_distance": integer, "back_distance": integer, "key_slopes": [] },
-  "dogleg": { "direction": "left | right | none", "distance_to_pivot": integer },
-  "elevation_change": "uphill | downhill | flat | unknown",
-  "notes": []
-}
-</schema>`;
-
-  const res = await fetch("/api/extract", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: GEMINI_SYSTEM_INSTRUCTION }] },
-      contents: [{
-        parts: [
-          { text: userPrompt },
-          { inline_data: { mime_type: mimeType, data: base64Image } },
-        ],
-      }],
-      generationConfig: {
-        temperature: 0.1,
-        response_mime_type: "application/json",
-        media_resolution: "MEDIA_RESOLUTION_HIGH",
-      },
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const msg = data?.error?.message || data?.message || JSON.stringify(data?.error) || "Gemini API error";
-    throw new Error(msg);
-  }
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return JSON.parse(text.replace(/```json|```/g, "").trim());
-}
-
-async function generateStrategyWithClaude(holeData, playerProfile, playerDna, weather, conditions, gamePlan, detectedCategory, activeGoal) {
-  const catMeta = HOLE_CATEGORIES.find(c => c.key === detectedCategory);
-  const shapeMeta = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
+async function generateStrategyWithGPT4o(base64Image, mimeType, playerProfile, playerDna, weather, conditions, gamePlan) {
+  const shapeMeta  = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
   const flightMeta = BALL_FLIGHTS.find(f => f.value === playerDna.ball_flight);
-  const res = await fetch("/api/strategy", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: 1500,
-      system: `You are an elite PGA Tour caddie and golf strategist with deep knowledge of performance analytics. You build precise, actionable hole strategies using yardage book data, ClippD performance stats, pin location heatmaps, approach scoring zones, and course conditions.
+
+  const systemPrompt = `You are an elite PGA Tour caddie and golf strategist with deep knowledge of performance analytics. You receive a yardage book image and player data, and return a complete structured hole strategy.
 
 KEY RULES:
-1. SCORING GOAL FIRST: Open hole_overview by explicitly stating the scoring goal (${activeGoal}) and WHY this hole is categorized as "${catMeta?.label}". Make the intent clear from sentence one.
-2. DIRECTIONAL AWARENESS: Player is ${playerDna.dexterity}-handed. All real-world miss directions in the profile are already corrected. Use them as stated.
-3. APPROACH DISTANCE MANAGEMENT: Engineer the tee shot to leave the optimal approach yardage per scoring zones. This is the #1 lever.
-4. PIN LOCATION HEATMAPS: Cross-reference pin position with heatmap SQ scores for that distance bucket. State the SQ score and whether to attack or bail.
-5. TEE CLUB SELECTION: Use FIR% and miss data — not just distance.
-6. GOAL-CALIBRATED AGGRESSION: Calibrate every decision to the scoring goal. Eagle attempt = go for it. Par protection = remove risk.
-7. PLAYER DNA: Factor ball flight archetype into every club recommendation and target line. Account for stock shot shape in miss management.
+1. READ THE IMAGE FIRST: Extract hole number, par, yardages, hazards, landing zones, green dimensions, dogleg, and elevation from the yardage book image.
+2. CLASSIFY THE HOLE: Based on par and yardage, determine the hole category and pull the correct scoring goal from the game plan provided.
+3. SCORING GOAL FIRST: Open hole_overview by stating the scoring goal and why the hole falls into that category.
+4. DIRECTIONAL AWARENESS: Player is left-handed. All miss directions in the profile are real-world corrected. Use them as stated.
+5. APPROACH DISTANCE MANAGEMENT: Engineer tee shot to leave optimal approach yardage per scoring zones. This is the #1 lever.
+6. PIN LOCATION HEATMAPS: Cross-reference pin position with heatmap SQ scores. State the SQ score and whether to attack or bail.
+7. TEE CLUB SELECTION: Use FIR% and miss data — not just distance.
+8. GOAL-CALIBRATED AGGRESSION: Eagle attempt = go for it. Par protection = remove risk, accept bogey before double.
+9. PLAYER DNA: Factor ball flight archetype into every club recommendation. Account for stock shot shape in target lines and miss management.
 
-OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 6 keys. No markdown, no backticks, no preamble:
+OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 7 keys. No markdown, no backticks, no preamble:
 {
+  "hole_data": {
+    "hole_number": integer or null,
+    "par": integer or null,
+    "yardages": { "back": integer or null, "middle": integer or null, "forward": integer or null },
+    "hazards": [{ "type": "Bunker | Water | OB | Trees", "side": "left | right | center", "distance_to_carry": integer or null }],
+    "dogleg": { "direction": "left | right | none", "distance_to_pivot": integer or null },
+    "elevation_change": "uphill | downhill | flat | unknown",
+    "green": { "front_distance": integer or null, "middle_distance": integer or null, "back_distance": integer or null }
+  },
   "hole_overview": ["bullet 1", "bullet 2", ...],
   "tee_shot": ["bullet 1", "bullet 2", ...],
   "approach": ["bullet 1", "bullet 2", ...],
@@ -146,16 +97,22 @@ OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 6 keys. No ma
   "risk_reward": ["bullet 1", "bullet 2", ...],
   "key_numbers": ["bullet 1", "bullet 2", ...]
 }
-Each key must be an array of 3–6 concise bullet strings. Reference specific yardages, clubs, and heatmap SQ scores throughout.`,
-      messages: [{
-        role: "user",
-        content: `Build a complete hole strategy.
+Each strategy key must be an array of 3-6 concise bullet strings. Reference specific yardages, clubs, and heatmap SQ scores throughout.`;
 
-SCORING GOAL: ${activeGoal}
-HOLE CATEGORY: ${catMeta?.label} (${catMeta?.sub})
+  const userContent = [
+    {
+      type: "image_url",
+      image_url: {
+        url: `data:${mimeType};base64,${base64Image}`,
+        detail: "high",
+      },
+    },
+    {
+      type: "text",
+      text: `Analyze this yardage book image and build a complete hole strategy.
 
-COACH'S FULL GAME PLAN (for context):
-${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label, gamePlan[c.key]])), null, 2)}
+COACH GAME PLAN (scoring goal by hole type):
+${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label + " (" + c.sub + ")", gamePlan[c.key]])), null, 2)}
 
 PLAYER DNA:
 - Dexterity: ${playerDna.dexterity}-handed
@@ -165,59 +122,71 @@ PLAYER DNA:
   · Strategy implication: ${flightMeta?.implications || ""}
 ${playerDna.notes ? `- Coach Notes: ${playerDna.notes}` : ""}
 
-HOLE DATA (Gemini Vision):
-${JSON.stringify(holeData, null, 2)}
-
 PLAYER PROFILE (full ClippD analytics):
 ${JSON.stringify(playerProfile, null, 2)}
 
 WEATHER:
-- Wind effect on this hole: ${weather.wind_effect} (${weather.wind_tier === "light" ? "light, 1–10 mph" : weather.wind_tier === "moderate" ? "moderate, 11–20 mph" : "strong, 20+ mph"})
-- Temperature: ${weather.temperature_f}°F
+- Wind effect on this hole: ${weather.wind_effect} (${weather.wind_tier === "light" ? "light, 1-10 mph" : weather.wind_tier === "moderate" ? "moderate, 11-20 mph" : "strong, 20+ mph"})
+- Temperature: ${weather.temperature_f}F
 - Green speed: Stimp ${weather.green_speed_stimp}
 - Course firmness: ${weather.firmness}
 
 COURSE CONDITIONS:
-${JSON.stringify(conditions, null, 2)}
+- Pin position: ${conditions.pin_position}
+- Rough height: ${conditions.rough_height_inches} inches
+- Fairway roll: ${conditions.fairway_roll_yards} yards
 
 Instructions:
-- The scoring goal is ${activeGoal} — calibrate every decision to this
-- Use approach scoring zones to determine ideal tee shot distance
-- Check pin_location_heatmaps for pin position "${conditions.pin_position}" at expected approach distance
-- State the heatmap SQ score for the current pin and whether to attack or bail
+- Read the image carefully — extract all visible yardages, hazards, landing zones, green info
+- Match hole to the correct game plan category and scoring goal
+- Use approach scoring zones to determine ideal tee shot layup distance
+- Check pin_location_heatmaps for the current pin position at expected approach distance
+- State the heatmap SQ score and whether to attack or bail
 - Account for dominant miss direction on every shot
 - Compare tee clubs by FIR% not just distance`,
-      }],
+    },
+  ];
+
+  const response = await fetch("/api/strategy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: GPT4O_MODEL,
+      max_tokens: 1500,
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user",   content: userContent },
+      ],
     }),
   });
-  const data = await res.json();
-  if (!res.ok) {
-    const msg = data?.error?.message || data?.message || JSON.stringify(data?.error) || "Claude API error";
-    throw new Error(msg);
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || "OpenAI API error");
   }
-  return data.content?.[0]?.text ?? data.content?.[0]?.content?.[0]?.text ?? "";
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || "";
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  return JSON.parse(cleaned);
 }
 
 const SECTION_META = [
   { key: "hole_overview", label: "Hole Overview", icon: "🗺️" },
-  { key: "tee_shot",      label: "Tee Shot",      icon: "🏌️" },
-  { key: "approach",      label: "Approach",      icon: "🎯" },
-  { key: "scoring_zone",  label: "Scoring Zone",  icon: "📍" },
-  { key: "risk_reward",   label: "Risk / Reward", icon: "⚖️" },
-  { key: "key_numbers",   label: "Key Numbers",   icon: "📐" },
+  { key: "tee_shot",      label: "Tee Shot",       icon: "🏌️" },
+  { key: "approach",      label: "Approach",        icon: "🎯" },
+  { key: "scoring_zone",  label: "Scoring Zone",   icon: "📍" },
+  { key: "risk_reward",   label: "Risk / Reward",  icon: "⚖️" },
+  { key: "key_numbers",   label: "Key Numbers",    icon: "📐" },
 ];
 
-function parseStrategy(text) {
-  const cleaned = (text || "").replace(/```json|```/g, "").trim();
-  let parsed;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch {
+function parseStrategy(parsed) {
+  if (!parsed || typeof parsed !== "object") {
     return SECTION_META.map(s => ({
       ...s,
-      lines: s.key === "hole_overview"
-        ? ["Strategy response could not be parsed. Try regenerating."]
-        : [],
+      lines: s.key === "hole_overview" ? ["Strategy response could not be parsed. Try regenerating."] : [],
     }));
   }
   return SECTION_META.map(s => ({
@@ -345,7 +314,6 @@ export default function GolfGoStrategyGenerator() {
   const [error,setError]=useState("");
   const [activeSection,setActiveSection]=useState(0);
   const fileRef=useRef();
-  const [showAnalytics,setShowAnalytics]=useState(false);
 
   const handleImageChange=useCallback((file)=>{
     if(!file)return;
@@ -369,25 +337,29 @@ export default function GolfGoStrategyGenerator() {
     if(!imageBase64Ref.current){setError("Upload a yardage book image");return;}
     setError("");setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
     try{
-      setPhase("extracting");
-      const extracted=await extractHoleDataWithGemini(imageBase64Ref.current,imageMime);
+      setPhase("thinking");
+      const result=await generateStrategyWithGPT4o(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const extracted=result.hole_data||{};
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
-      setPhase("strategizing");
-      const txt=await generateStrategyWithClaude(extracted,player,playerDna,weather,conditions,gamePlan,category,goal);
-      setParsedStrategy(parseStrategy(txt));setPhase("done");setActiveSection(0);
+      setParsedStrategy(parseStrategy(result));setPhase("done");setActiveSection(0);
     }catch(e){setError(e.message);setPhase("error");}
   };
 
-  const rerun=async()=>{
+  const rerunWithOverride=async()=>{
     if(!holeData||!activeGoal)return;
     setError("");setParsedStrategy([]);
     try{
-      setPhase("strategizing");
-      const txt=await generateStrategyWithClaude(holeData,player,playerDna,weather,conditions,gamePlan,detectedCategory,activeGoal);
-      setParsedStrategy(parseStrategy(txt));setPhase("done");setActiveSection(0);
+      setPhase("thinking");
+      const result=await generateStrategyWithGPT4o(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const extracted=result.hole_data||holeData;
+      setHoleData(extracted);
+      const category=classifyHole(extracted,player);
+      const goal=gamePlan[category];
+      setDetectedCategory(category);setActiveGoal(goal);
+      setParsedStrategy(parseStrategy(result));setPhase("done");setActiveSection(0);
     }catch(e){setError(e.message);setPhase("error");}
   };
 
@@ -437,8 +409,8 @@ export default function GolfGoStrategyGenerator() {
           </div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={()=>setShowAnalytics(true)} style={{padding:"6px 14px",borderRadius:6,fontSize:13,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",color:"#4ade80",cursor:"pointer",fontFamily:"inherit"}}>📊 Player Analytics</button>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
+          <GlowBadge color="emerald">GPT-4o Vision</GlowBadge>
         </div>
       </div>
 
@@ -658,11 +630,11 @@ export default function GolfGoStrategyGenerator() {
             )}
           </div>
 
-          <button className="glow-btn" style={{padding:"12px 16px",borderRadius:8,fontSize:13,color:"#f0fdf4",fontFamily:"inherit",fontWeight:500,width:"100%"}} disabled={phase==="extracting"||phase==="strategizing"} onClick={runPipeline}>
-            {phase==="extracting"?"⟳ Analyzing Image...":phase==="strategizing"?"⟳ Building Strategy...":"▶ Generate Strategy"}
+          <button className="glow-btn" style={{padding:"12px 16px",borderRadius:8,fontSize:13,color:"#f0fdf4",fontFamily:"inherit",fontWeight:500,width:"100%"}} disabled={phase==="thinking"} onClick={runPipeline}>
+            {phase==="thinking"?"⟳ Analyzing & Building Strategy...":"▶ Generate Strategy"}
           </button>
 
-          {phase==="done"&&holeData&&<button onClick={rerun} style={{padding:"8px 16px",borderRadius:8,fontSize:13,color:"#4ade80",fontFamily:"inherit",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",cursor:"pointer",width:"100%"}}>↺ Re-run with goal override</button>}
+          {phase==="done"&&holeData&&<button onClick={rerunWithOverride} style={{padding:"8px 16px",borderRadius:8,fontSize:13,color:"#4ade80",fontFamily:"inherit",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",cursor:"pointer",width:"100%"}}>↺ Re-run with current goal override</button>}
 
           {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:10,fontSize:13,color:"#fca5a5"}}>⚠ {error}</div>}
         </div>
@@ -674,7 +646,7 @@ export default function GolfGoStrategyGenerator() {
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16}}>
               <div style={{fontSize:44,opacity:0.2}}>⛳</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#c4cdd8",textAlign:"center"}}>Upload a yardage book image<br/>to generate a hole strategy</div>
-              <div style={{fontSize:14,color:"#9ca3af",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>Gemini detects the hole · Claude builds the strategy</div>
+              <div style={{fontSize:14,color:"#9ca3af",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>GPT-4o reads the image · builds the strategy in one shot</div>
               <div className="panel" style={{padding:14,maxWidth:360,width:"100%"}}>
                 <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Current Game Plan</div>
                 {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return(
@@ -687,30 +659,13 @@ export default function GolfGoStrategyGenerator() {
             </div>
           )}
 
-          {(phase==="extracting"||phase==="strategizing")&&(
+          {phase==="thinking"&&(
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:20}}>
               <div style={{width:44,height:44,borderRadius:"50%",border:"2px solid #16a34a20",borderTopColor:"#16a34a"}} className="spin"/>
               <div style={{textAlign:"center"}}>
-                <div style={{fontSize:13,color:"#4ade80",marginBottom:5}}>{phase==="extracting"?"Analyzing yardage book...":"Building hole strategy..."}</div>
-                <div style={{fontSize:10,color:"#9ca3af"}}>{phase==="extracting"?"Gemini Vision extracting hole data":"Claude synthesizing strategy"}</div>
+                <div style={{fontSize:13,color:"#4ade80",marginBottom:5}}>Reading yardage book & building strategy...</div>
+                <div style={{fontSize:10,color:"#9ca3af"}}>GPT-4o analyzing image and player data</div>
               </div>
-              {holeData&&phase==="strategizing"&&(
-                <div className="panel fade-in" style={{padding:14,maxWidth:380,width:"100%"}}>
-                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",marginBottom:8,textTransform:"uppercase"}}>Extracted ✓  |  Classifying hole...</div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                    {holeData.hole_number&&<StatRow label="Hole" value={holeData.hole_number}/>}
-                    {holeData.par&&<StatRow label="Par" value={holeData.par}/>}
-                    {holeData.yardages?.back&&<StatRow label="Back" value={holeData.yardages.back} unit="yds"/>}
-                    {holeData.yardages?.middle&&<StatRow label="Middle" value={holeData.yardages.middle} unit="yds"/>}
-                  </div>
-                  {detectedCategory&&activeGoal&&(
-                    <div style={{padding:"8px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
-                      <div style={{fontSize:12,color:goalColor.text,textTransform:"uppercase",letterSpacing:"0.08em"}}>Auto-classified</div>
-                      <div style={{fontSize:12,color:goalColor.text,marginTop:3,fontWeight:500}}>{catMeta?.icon} {catMeta?.label} → {activeGoal}</div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -722,7 +677,7 @@ export default function GolfGoStrategyGenerator() {
                   {holeData?.par&&<span style={{color:"#6dab82",fontSize:14,marginLeft:8}}>Par {holeData.par}</span>}
                 </div>
                 {holeData?.yardages?.back&&<GlowBadge color="emerald">{holeData.yardages.back} yds</GlowBadge>}
-                {(holeData?.dogleg?.exists||(holeData?.dogleg?.direction&&holeData.dogleg.direction!=="none"))&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
+                {holeData?.dogleg?.direction&&holeData.dogleg.direction!=="none"&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
                 {holeData?.elevation_change&&holeData.elevation_change!=="flat"&&<GlowBadge color="sky">{holeData.elevation_change}</GlowBadge>}
                 {detectedCategory&&activeGoal&&(
                   <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
@@ -761,7 +716,7 @@ export default function GolfGoStrategyGenerator() {
 
               {holeData&&(
                 <div className="panel" style={{padding:16,marginTop:14}}>
-                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Gemini Extraction · Raw Hole Data</div>
+                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>GPT-4o Extraction · Raw Hole Data</div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
                     {holeData.yardages&&Object.entries(holeData.yardages).filter(([,v])=>v).map(([k,v])=>(
                       <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
@@ -794,14 +749,6 @@ export default function GolfGoStrategyGenerator() {
         </div>
       </div>
 
-      {showAnalytics&&(
-        <>
-          <div onClick={()=>setShowAnalytics(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:40,backdropFilter:"blur(2px)"}}/>
-          <div style={{position:"fixed",top:0,right:0,width:"min(860px, 92vw)",height:"100vh",zIndex:50,background:"#080e0b",borderLeft:"1px solid rgba(255,255,255,0.08)",boxShadow:"-20px 0 60px rgba(0,0,0,0.6)",animation:"slideIn 0.28s cubic-bezier(0.34,1.1,0.64,1)"}}>
-            <ClippdDashboard onClose={()=>setShowAnalytics(false)}/>
-          </div>
-        </>
-      )}
     </div>
   );
 }
