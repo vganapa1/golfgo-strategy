@@ -126,17 +126,27 @@ async function generateStrategyWithClaude(holeData, playerProfile, playerDna, we
     body: JSON.stringify({
       model: CLAUDE_MODEL,
       max_tokens: 1500,
-      system: `You are an elite PGA Tour caddie and golf strategist with deep knowledge of performance analytics.
+      system: `You are an elite PGA Tour caddie and golf strategist with deep knowledge of performance analytics. You build precise, actionable hole strategies using yardage book data, ClippD performance stats, pin location heatmaps, approach scoring zones, and course conditions.
 
 KEY RULES:
-1. SCORING GOAL FIRST: Open HOLE OVERVIEW by stating the scoring goal (${activeGoal}) and WHY this hole is categorized as "${catMeta?.label}". Make intent clear from sentence one.
-2. DIRECTIONAL AWARENESS: Player is ${playerDna.dexterity}-handed. All real-world miss directions in the profile are already corrected. Use as stated.
-3. APPROACH DISTANCE: Engineer tee shot to leave optimal approach yardage per scoring zones. This is the #1 lever.
-4. PIN HEATMAPS: Cross-reference pin position with heatmap SQ for that distance. State score — attack or bail.
-5. TEE CLUB: Use FIR% and miss data, not just distance.
-6. PLAYER DNA: Factor ball flight archetype into every club recommendation. A Tumbler needs different targets than a Floater on firm greens. Account for stock shot shape when describing target lines and miss management.
+1. SCORING GOAL FIRST: Open hole_overview by explicitly stating the scoring goal (${activeGoal}) and WHY this hole is categorized as "${catMeta?.label}". Make the intent clear from sentence one.
+2. DIRECTIONAL AWARENESS: Player is ${playerDna.dexterity}-handed. All real-world miss directions in the profile are already corrected. Use them as stated.
+3. APPROACH DISTANCE MANAGEMENT: Engineer the tee shot to leave the optimal approach yardage per scoring zones. This is the #1 lever.
+4. PIN LOCATION HEATMAPS: Cross-reference pin position with heatmap SQ scores for that distance bucket. State the SQ score and whether to attack or bail.
+5. TEE CLUB SELECTION: Use FIR% and miss data — not just distance.
+6. GOAL-CALIBRATED AGGRESSION: Calibrate every decision to the scoring goal. Eagle attempt = go for it. Par protection = remove risk.
+7. PLAYER DNA: Factor ball flight archetype into every club recommendation and target line. Account for stock shot shape in miss management.
 
-Format: HOLE OVERVIEW, TEE SHOT, APPROACH, SCORING ZONE, RISK/REWARD, KEY NUMBERS. Bullet points. Reference yardages, clubs, heatmap SQ scores.`,
+OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 6 keys. No markdown, no backticks, no preamble:
+{
+  "hole_overview": ["bullet 1", "bullet 2", ...],
+  "tee_shot": ["bullet 1", "bullet 2", ...],
+  "approach": ["bullet 1", "bullet 2", ...],
+  "scoring_zone": ["bullet 1", "bullet 2", ...],
+  "risk_reward": ["bullet 1", "bullet 2", ...],
+  "key_numbers": ["bullet 1", "bullet 2", ...]
+}
+Each key must be an array of 3–6 concise bullet strings. Reference specific yardages, clubs, and heatmap SQ scores throughout.`,
       messages: [{
         role: "user",
         content: `Build a complete hole strategy.
@@ -144,20 +154,21 @@ Format: HOLE OVERVIEW, TEE SHOT, APPROACH, SCORING ZONE, RISK/REWARD, KEY NUMBER
 SCORING GOAL: ${activeGoal}
 HOLE CATEGORY: ${catMeta?.label} (${catMeta?.sub})
 
-COACH GAME PLAN:
+COACH'S FULL GAME PLAN (for context):
 ${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label, gamePlan[c.key]])), null, 2)}
 
 PLAYER DNA:
 - Dexterity: ${playerDna.dexterity}-handed
 - Stock Shot Shape: ${shapeMeta?.label || playerDna.stock_shape} — ${shapeMeta?.note || ""}
-- Ball Flight: ${flightMeta?.label || playerDna.ball_flight} (${flightMeta?.note || ""})
-  · ${flightMeta?.implications || ""}
+- Ball Flight Archetype: ${flightMeta?.label || playerDna.ball_flight} (${flightMeta?.note || ""})
+  · ${flightMeta?.description || ""}
+  · Strategy implication: ${flightMeta?.implications || ""}
 ${playerDna.notes ? `- Coach Notes: ${playerDna.notes}` : ""}
 
-HOLE DATA:
+HOLE DATA (Gemini Vision):
 ${JSON.stringify(holeData, null, 2)}
 
-PLAYER PROFILE:
+PLAYER PROFILE (full ClippD analytics):
 ${JSON.stringify(playerProfile, null, 2)}
 
 WEATHER:
@@ -169,10 +180,13 @@ WEATHER:
 COURSE CONDITIONS:
 ${JSON.stringify(conditions, null, 2)}
 
-- Calibrate every decision to: ${activeGoal}
-- Check pin_location_heatmaps for pin "${conditions.pin_position}" and state its SQ score
-- Compare tee clubs by FIR% not just distance
-- Factor ball flight archetype into club selection and target lines`,
+Instructions:
+- The scoring goal is ${activeGoal} — calibrate every decision to this
+- Use approach scoring zones to determine ideal tee shot distance
+- Check pin_location_heatmaps for pin position "${conditions.pin_position}" at expected approach distance
+- State the heatmap SQ score for the current pin and whether to attack or bail
+- Account for dominant miss direction on every shot
+- Compare tee clubs by FIR% not just distance`,
       }],
     }),
   });
@@ -184,31 +198,36 @@ ${JSON.stringify(conditions, null, 2)}
   return data.content?.[0]?.text ?? data.content?.[0]?.content?.[0]?.text ?? "";
 }
 
+const SECTION_META = [
+  { key: "hole_overview", label: "Hole Overview", icon: "🗺️" },
+  { key: "tee_shot",      label: "Tee Shot",      icon: "🏌️" },
+  { key: "approach",      label: "Approach",      icon: "🎯" },
+  { key: "scoring_zone",  label: "Scoring Zone",  icon: "📍" },
+  { key: "risk_reward",   label: "Risk / Reward", icon: "⚖️" },
+  { key: "key_numbers",   label: "Key Numbers",   icon: "📐" },
+];
+
 function parseStrategy(text) {
-  const sections = [
-    { key: "overview", label: "Hole Overview", icon: "🗺️" },
-    { key: "tee",      label: "Tee Shot",      icon: "🏌️" },
-    { key: "approach", label: "Approach",       icon: "🎯" },
-    { key: "scoring",  label: "Scoring Zone",   icon: "📍" },
-    { key: "risk",     label: "Risk / Reward",  icon: "⚖️" },
-    { key: "numbers",  label: "Key Numbers",    icon: "📐" },
-  ];
-  const headers = {
-    overview: /HOLE OVERVIEW/i, tee: /TEE SHOT/i, approach: /APPROACH/i,
-    scoring: /SCORING ZONE/i, risk: /RISK[\s/]+REWARD/i, numbers: /KEY NUMBERS/i,
-  };
-  const result = {};
-  let current = null;
-  for (const line of text.split("\n")) {
-    const t = line.trim();
-    let matched = false;
-    for (const [key, rx] of Object.entries(headers)) {
-      if (rx.test(t)) { current = key; result[key] = []; matched = true; break; }
-    }
-    if (!matched && current && t && !t.match(/^[#*_]+$/))
-      result[current].push(t.replace(/^[-*•]\s*/, "").replace(/\*\*/g, ""));
+  const cleaned = (text || "").replace(/```json|```/g, "").trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    return SECTION_META.map(s => ({
+      ...s,
+      lines: s.key === "hole_overview"
+        ? ["Strategy response could not be parsed. Try regenerating."]
+        : [],
+    }));
   }
-  return sections.map(s => ({ ...s, lines: result[s.key] || [] }));
+  return SECTION_META.map(s => ({
+    ...s,
+    lines: Array.isArray(parsed[s.key])
+      ? parsed[s.key].map(l => String(l).replace(/^[-•*]\s*/, "").trim()).filter(Boolean)
+      : typeof parsed[s.key] === "string"
+        ? [parsed[s.key]]
+        : [],
+  }));
 }
 
 const DEFAULT_PLAYER = {
