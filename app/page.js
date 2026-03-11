@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import ClippdDashboard from "./ClippdDashboard";
 
-const CLAUDE_MODEL = "claude-sonnet-4-6-20250217";
+const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 const GOAL_OPTIONS = ["eagle attempt","birdie","par protection","bogey avoidance","make cut"];
 
@@ -103,15 +103,15 @@ Analyze the attached yardage book page and extract ALL visible information.
       generationConfig: {
         temperature: 0.1,
         response_mime_type: "application/json",
-        media_resolution: "HIGH", // MANDATORY for small text in yardage books
-        thinkingConfig: {
-          thinkingLevel: "MEDIUM", // Activate 'Thinking' for complex spatial reasoning
-        },
+        media_resolution: "HIGH",
       },
     }),
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || "Gemini error"); }
   const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.error?.message || data?.message || JSON.stringify(data?.error) || "Gemini API error";
+    throw new Error(msg);
+  }
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   return JSON.parse(text.replace(/```json|```/g, "").trim());
 }
@@ -176,9 +176,12 @@ ${JSON.stringify(conditions, null, 2)}
       }],
     }),
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || "Claude error"); }
   const data = await res.json();
-  return data.content[0].text;
+  if (!res.ok) {
+    const msg = data?.error?.message || data?.message || JSON.stringify(data?.error) || "Claude API error";
+    throw new Error(msg);
+  }
+  return data.content?.[0]?.text ?? data.content?.[0]?.content?.[0]?.text ?? "";
 }
 
 function parseStrategy(text) {
