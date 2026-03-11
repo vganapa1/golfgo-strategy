@@ -324,9 +324,10 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
 
 export default function GolfGoStrategyGenerator() {
   const [imageFile,setImageFile]=useState(null);
-  const [imagePreview,setImagePreview]=useState(null);
-  const [imageBase64,setImageBase64]=useState(null);
+  const [imagePreview,setImagePreview]=useState(null); // object URL — not base64 (avoids Chrome crash)
   const [imageMime,setImageMime]=useState("image/jpeg");
+  const imageBase64Ref=useRef(null);
+  const previewUrlRef=useRef(null);
   const [weather,setWeather]=useState({wind_effect:"into",wind_tier:"moderate",temperature_f:72,firmness:"normal",green_speed_stimp:11});
   const [conditions,setConditions]=useState({pin_position:"middle-center",rough_height_inches:2.5,fairway_roll_yards:6});
   const [player,setPlayer]=useState(DEFAULT_PLAYER);
@@ -349,19 +350,27 @@ export default function GolfGoStrategyGenerator() {
   const handleImageChange=useCallback((file)=>{
     if(!file)return;
     setImageFile(file);setImageMime(file.type||"image/jpeg");
+    if(previewUrlRef.current){URL.revokeObjectURL(previewUrlRef.current);}
+    const objectUrl=URL.createObjectURL(file);
+    previewUrlRef.current=objectUrl;
+    setImagePreview(objectUrl);
     const r=new FileReader();
-    r.onload=e=>{setImagePreview(e.target.result);setImageBase64(e.target.result.split(",")[1]);};
+    r.onload=e=>{imageBase64Ref.current=e.target.result.split(",")[1];};
     r.readAsDataURL(file);
+  },[]);
+
+  useEffect(()=>{
+    return ()=>{if(previewUrlRef.current)URL.revokeObjectURL(previewUrlRef.current);};
   },[]);
 
   const handleDrop=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange(f);},[handleImageChange]);
 
   const runPipeline=async()=>{
-    if(!imageBase64){setError("Upload a yardage book image");return;}
+    if(!imageBase64Ref.current){setError("Upload a yardage book image");return;}
     setError("");setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
     try{
       setPhase("extracting");
-      const extracted=await extractHoleDataWithGemini(imageBase64,imageMime);
+      const extracted=await extractHoleDataWithGemini(imageBase64Ref.current,imageMime);
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
@@ -382,7 +391,11 @@ export default function GolfGoStrategyGenerator() {
     }catch(e){setError(e.message);setPhase("error");}
   };
 
-  const reset=()=>{setPhase("idle");setImageFile(null);setImagePreview(null);setImageBase64(null);setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);};
+  const reset=()=>{
+    if(previewUrlRef.current){URL.revokeObjectURL(previewUrlRef.current);previewUrlRef.current=null;}
+    imageBase64Ref.current=null;
+    setPhase("idle");setImageFile(null);setImagePreview(null);setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
+  };
 
   const pinLabels=["front-left","front-center","front-right","middle-left","middle-center","middle-right","back-left","back-center","back-right"];
   const goalColor=GOAL_COLORS[activeGoal]||GOAL_COLORS["par protection"];
