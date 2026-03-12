@@ -208,7 +208,7 @@ REMINDER:
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: STRATEGY_MODEL,
-      max_tokens: 1500,
+      max_completion_tokens: 1500,
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
