@@ -164,7 +164,7 @@ Instructions:
 
   if (!response.ok) {
     const err = await response.json();
-    throw new Error(err.error?.message || "OpenAI API error");
+    throw new Error(err.error?.message || "Strategy API error");
   }
 
   const data = await response.json();
@@ -410,7 +410,7 @@ export default function GolfGoStrategyGenerator() {
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {activeGoal&&<div style={{padding:"4px 12px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text,fontSize:11,fontWeight:500}} className="goal-pulse">{catMeta?.icon} {activeGoal}</div>}
-          <GlowBadge color="emerald">GPT-4o Vision</GlowBadge>
+          <GlowBadge color="emerald">AI Vision</GlowBadge>
         </div>
       </div>
 
@@ -646,7 +646,7 @@ export default function GolfGoStrategyGenerator() {
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16}}>
               <div style={{fontSize:44,opacity:0.2}}>⛳</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#c4cdd8",textAlign:"center"}}>Upload a yardage book image<br/>to generate a hole strategy</div>
-              <div style={{fontSize:14,color:"#9ca3af",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>GPT-4o reads the image · builds the strategy in one shot</div>
+              <div style={{fontSize:14,color:"#9ca3af",textAlign:"center",maxWidth:320,lineHeight:1.6}}>Set your game plan by hole type in the sidebar →<br/>AI reads the image · builds the strategy in one shot</div>
               <div className="panel" style={{padding:14,maxWidth:360,width:"100%"}}>
                 <div style={{fontSize:11,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,fontWeight:600}}>Current Game Plan</div>
                 {HOLE_CATEGORIES.map(cat=>{const gc=GOAL_COLORS[gamePlan[cat.key]]||GOAL_COLORS["par protection"];return(
@@ -664,7 +664,7 @@ export default function GolfGoStrategyGenerator() {
               <div style={{width:44,height:44,borderRadius:"50%",border:"2px solid #16a34a20",borderTopColor:"#16a34a"}} className="spin"/>
               <div style={{textAlign:"center"}}>
                 <div style={{fontSize:13,color:"#4ade80",marginBottom:5}}>Reading yardage book & building strategy...</div>
-                <div style={{fontSize:10,color:"#9ca3af"}}>GPT-4o analyzing image and player data</div>
+                <div style={{fontSize:10,color:"#9ca3af"}}>Analyzing image and player data</div>
               </div>
             </div>
           )}
@@ -716,7 +716,7 @@ export default function GolfGoStrategyGenerator() {
 
               {holeData&&(
                 <div className="panel" style={{padding:16,marginTop:14}}>
-                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>GPT-4o Extraction · Raw Hole Data</div>
+                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Raw Hole Data</div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
                     {holeData.yardages&&Object.entries(holeData.yardages).filter(([,v])=>v).map(([k,v])=>(
                       <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
