@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useCallback, useEffect } from "react";
 
-const GPT4O_MODEL = "gpt-4o";
+const STRATEGY_MODEL = "gpt-5.4";
 
 const GOAL_OPTIONS = ["eagle attempt","birdie","par protection","bogey avoidance","make cut"];
 
@@ -60,9 +60,9 @@ function classifyHole(holeData, playerProfile) {
   return "par4_medium";
 }
 
-// ─── GPT-4o Vision + Strategy (single call) ──────────────────────────────────
+// ─── Vision + Strategy (single call) ─────────────────────────────────────────
 
-async function generateStrategyWithGPT4o(base64Image, mimeType, playerProfile, playerDna, weather, conditions, gamePlan) {
+async function generateStrategy(base64Image, mimeType, playerProfile, playerDna, weather, conditions, gamePlan) {
   const shapeMeta  = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
   const flightMeta = BALL_FLIGHTS.find(f => f.value === playerDna.ball_flight);
 
@@ -207,7 +207,7 @@ REMINDER:
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: GPT4O_MODEL,
+      model: STRATEGY_MODEL,
       max_tokens: 1500,
       temperature: 0.2,
       response_format: { type: "json_object" },
@@ -392,7 +392,7 @@ export default function GolfGoStrategyGenerator() {
     setError("");setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
     try{
       setPhase("thinking");
-      const result=await generateStrategyWithGPT4o(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
       const extracted=result.hole_data||{};
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
@@ -407,7 +407,7 @@ export default function GolfGoStrategyGenerator() {
     setError("");setParsedStrategy([]);
     try{
       setPhase("thinking");
-      const result=await generateStrategyWithGPT4o(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
       const extracted=result.hole_data||holeData;
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
