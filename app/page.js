@@ -66,20 +66,48 @@ async function generateStrategyWithGPT4o(base64Image, mimeType, playerProfile, p
   const shapeMeta  = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
   const flightMeta = BALL_FLIGHTS.find(f => f.value === playerDna.ball_flight);
 
-  const systemPrompt = `You are an elite PGA Tour caddie and golf strategist with deep knowledge of performance analytics. You receive a yardage book image and player data, and return a complete structured hole strategy.
+  const systemPrompt = `You are a tournament golf strategy generator.
 
-KEY RULES:
-1. READ THE IMAGE FIRST: Extract hole number, par, yardages, hazards, landing zones, green dimensions, dogleg, and elevation from the yardage book image.
-2. CLASSIFY THE HOLE: Based on par and yardage, determine the hole category and pull the correct scoring goal from the game plan provided.
-3. SCORING GOAL FIRST: Open hole_overview by stating the scoring goal and why the hole falls into that category.
-4. DIRECTIONAL AWARENESS: Player is left-handed. All miss directions in the profile are real-world corrected. Use them as stated.
-5. APPROACH DISTANCE MANAGEMENT: Engineer tee shot to leave optimal approach yardage per scoring zones. This is the #1 lever.
-6. PIN LOCATION HEATMAPS: Cross-reference pin position with heatmap SQ scores. State the SQ score and whether to attack or bail.
-7. TEE CLUB SELECTION: Use FIR% and miss data — not just distance.
-8. GOAL-CALIBRATED AGGRESSION: Eagle attempt = go for it. Par protection = remove risk, accept bogey before double.
-9. PLAYER DNA: Factor ball flight archetype into every club recommendation. Account for stock shot shape in target lines and miss management.
+Your only job is to produce compressed, competition-usable strategy cards for a player or caddie.
 
-OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 7 keys. No markdown, no backticks, no preamble:
+You are a decision compressor — not an analyst, not a report writer, not a swing coach.
+
+Output must be usable in tournament play where the player/caddie has 2–3 seconds to read the plan.
+
+CORE OUTPUT — collapse every hole into exactly 3 required fields:
+1. tee_intent   — where to start the ball, aggression level, avoid zone if critical
+2. approach_bias — aggressive / neutral / conservative, yardage threshold only if it changes the shot
+3. miss_safety  — safest miss side or zone, one short line
+
+OPTIONAL fields — include ONLY if they materially improve tournament usability:
+- ideal_leave    — only when it changes tee strategy (e.g. "110–135 ★")
+- primary_danger — only when it prevents a major mistake (e.g. "✖ Right Bunker")
+- pin_adjustment — only when exact pin info is provided and changes the shot (e.g. "Front: -5y | Left: add depth")
+
+TIME-PRESSURE FILTER
+For every output detail ask: "Would this change the shot within 10 seconds?"
+If no — exclude it.
+
+LANGUAGE RULES
+Use caddie-friendly decision language only.
+Preferred words: Aggressive · Neutral · Conservative · Safe Left · Safe Right · Center · Avoid · Green Light · Protect Par
+Preferred symbols: ▲ Aggressive · ● Neutral · ▼ Conservative · ← Safe Left · → Safe Right · ✖ Avoid
+
+Avoid: long sentences · paragraphs · analytics language · percentages · strokes gained · dispersion · trend descriptions · statistical rationale · internal reasoning · hedging
+
+PLAYER FIT RULE
+Internal reasoning may use all player data — scoring zones, miss tendencies, FIR%, heatmaps, ball flight.
+Final output must compress that reasoning into the 3 required fields.
+Never surface analytics language in the output.
+
+DO NOT INCLUDE IN OUTPUT: strokes gained · percentages · dispersion · proximity data · SQ scores · confidence intervals · sample-size caveats · internal chain-of-thought
+
+STRICT LENGTH RULES
+Each field = one short line. No paragraphs. No explanations.
+Use separators: | / ,
+Keep it compact enough to memorize while walking to the tee.
+
+OUTPUT SCHEMA — return ONLY valid JSON, no markdown, no backticks, no preamble:
 {
   "hole_data": {
     "hole_number": integer or null,
@@ -90,14 +118,30 @@ OUTPUT FORMAT — return ONLY a raw JSON object with exactly these 7 keys. No ma
     "elevation_change": "uphill | downhill | flat | unknown",
     "green": { "front_distance": integer or null, "middle_distance": integer or null, "back_distance": integer or null }
   },
-  "hole_overview": ["bullet 1", "bullet 2", ...],
-  "tee_shot": ["bullet 1", "bullet 2", ...],
-  "approach": ["bullet 1", "bullet 2", ...],
-  "scoring_zone": ["bullet 1", "bullet 2", ...],
-  "risk_reward": ["bullet 1", "bullet 2", ...],
-  "key_numbers": ["bullet 1", "bullet 2", ...]
+  "tee_intent": "<compressed caddie prompt>",
+  "approach_bias": "<compressed caddie prompt>",
+  "miss_safety": "<compressed caddie prompt>",
+  "ideal_leave": "<short prompt or omit key>",
+  "primary_danger": "<short prompt or omit key>",
+  "pin_adjustment": "<short prompt or omit key>"
 }
-Each strategy key must be an array of 3-6 concise bullet strings. Reference specific yardages, clubs, and heatmap SQ scores throughout.`;
+
+GOOD OUTPUT EXAMPLES:
+{
+  "tee_intent": "● Left-Center | ✖ Right Bunker",
+  "approach_bias": "<140 ▲ | 160+ ▼",
+  "miss_safety": "← Short-Left Safe"
+}
+{
+  "tee_intent": "▼ 3i | Leave 120–135",
+  "approach_bias": "▲ Front-Center | ✖ Back Pin",
+  "miss_safety": "→ Right Safe",
+  "primary_danger": "✖ Water Left <260"
+}
+
+BAD OUTPUT (never do this):
+"tee_intent": "Aim left center because strokes gained off the tee has been better when the fairway is hit..."
+"approach_bias": "SQ 97 from 120-140 suggests attacking front-center pins..."`;
 
   const userContent = [
     {
@@ -109,41 +153,53 @@ Each strategy key must be an array of 3-6 concise bullet strings. Reference spec
     },
     {
       type: "text",
-      text: `Analyze this yardage book image and build a complete hole strategy.
+      text: `Read this yardage book image and return a tournament strategy card.
 
-COACH GAME PLAN (scoring goal by hole type):
+HOLE CLASSIFICATION + SCORING GOAL:
 ${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label + " (" + c.sub + ")", gamePlan[c.key]])), null, 2)}
+→ Identify which category this hole falls into. Pull the scoring goal. Use it to calibrate aggression across all 3 fields.
 
 PLAYER DNA:
 - Dexterity: ${playerDna.dexterity}-handed
-- Stock Shot Shape: ${shapeMeta?.label || playerDna.stock_shape} — ${shapeMeta?.note || ""}
-- Ball Flight Archetype: ${flightMeta?.label || playerDna.ball_flight} (${flightMeta?.note || ""})
-  · ${flightMeta?.description || ""}
-  · Strategy implication: ${flightMeta?.implications || ""}
+- Stock Shot Shape: ${shapeMeta?.label || playerDna.stock_shape} (${shapeMeta?.note || ""})
+- Ball Flight: ${flightMeta?.label || playerDna.ball_flight} — ${flightMeta?.implications || ""}
 ${playerDna.notes ? `- Coach Notes: ${playerDna.notes}` : ""}
 
-PLAYER PROFILE (full ClippD analytics):
-${JSON.stringify(playerProfile, null, 2)}
+CLIPPD — TEE SHOT DECISION:
+Tee club hierarchy by accuracy (FIR%): ${playerProfile.off_the_tee?.tee_club_hierarchy_by_fir || "Driver > 3W > 3i"}
+- Driver: ${playerProfile.off_the_tee?.clubs?.driver?.avg_carry_yards}yds carry · ${Math.round((playerProfile.off_the_tee?.clubs?.driver?.fir_pct || 0) * 100)}% FIR · misses ${Math.round((playerProfile.off_the_tee?.clubs?.driver?.miss_real_world_left_pct || 0) * 100)}% left / ${Math.round((playerProfile.off_the_tee?.clubs?.driver?.miss_real_world_right_pct || 0) * 100)}% right
+- 3W: ${playerProfile.off_the_tee?.clubs?.["3w"]?.avg_carry_yards}yds carry · ${Math.round((playerProfile.off_the_tee?.clubs?.["3w"]?.fir_pct || 0) * 100)}% FIR · ${playerProfile.off_the_tee?.clubs?.["3w"]?.note || ""}
+- 3i: ${playerProfile.off_the_tee?.clubs?.["3i"]?.avg_carry_yards}yds carry · ${Math.round((playerProfile.off_the_tee?.clubs?.["3i"]?.fir_pct || 0) * 100)}% FIR · ${playerProfile.off_the_tee?.clubs?.["3i"]?.note || ""}
+→ Use FIR% to pick the tee club for tee_intent. Higher FIR% = safer when accuracy matters.
+
+CLIPPD — APPROACH DISTANCE TARGETS:
+Best window: ${playerProfile.approach?.scoring_zones?.[0]?.range_yards}yds (peak performance)
+Avoid beyond: ${playerProfile.approach?.scoring_zones?.slice(-2).map(z => z.range_yards).join(", ") || "200+"} (performance drops)
+→ Engineer tee shot to leave the best approach window. Use this to set ideal_leave if it changes tee strategy.
+
+CLIPPD — PIN HEATMAP FOR THIS HOLE:
+Current pin position: ${conditions.pin_position}
+Expected approach distance: derive from hole yardage minus tee shot carry
+Heatmap data by distance bucket:
+${JSON.stringify(playerProfile.approach?.pin_location_heatmaps || {}, null, 2)}
+→ Find the bucket matching expected approach distance. Look up the SQ score for "${conditions.pin_position}".
+  · High SQ (100+) = attack · Mid SQ (85–99) = neutral · Low SQ (<85) = bail/avoid
+  · Use this to set approach_bias aggression. Do NOT surface the SQ number in the output.
+
+CLIPPD — MISS MANAGEMENT:
+Dominant real-world miss: ${playerProfile.approach?.dominant_miss_real_world} (approach)
+Tee miss: ${Math.round((playerProfile.off_the_tee?.clubs?.driver?.miss_real_world_left_pct || 0) * 100)}% left / ${Math.round((playerProfile.off_the_tee?.clubs?.driver?.miss_real_world_right_pct || 0) * 100)}% right off driver
+Avoid zones: ${JSON.stringify(playerProfile.strategic_summary?.avoid || [])}
+→ Use dominant miss to set miss_safety. If dominant miss aligns with a hazard, flag it in primary_danger.
 
 WEATHER:
-- Wind effect on this hole: ${weather.wind_effect} (${weather.wind_tier === "light" ? "light, 1-10 mph" : weather.wind_tier === "moderate" ? "moderate, 11-20 mph" : "strong, 20+ mph"})
-- Temperature: ${weather.temperature_f}F
-- Green speed: Stimp ${weather.green_speed_stimp}
-- Course firmness: ${weather.firmness}
+- Wind: ${weather.wind_effect} · ${weather.wind_tier === "light" ? "light 1–10mph" : weather.wind_tier === "moderate" ? "moderate 11–20mph" : "strong 20+mph"}
+- Temp: ${weather.temperature_f}°F · Stimp: ${weather.green_speed_stimp} · Firmness: ${weather.firmness}
+- Fairway roll: ${conditions.fairway_roll_yards}yds · Rough: ${conditions.rough_height_inches}in
 
-COURSE CONDITIONS:
-- Pin position: ${conditions.pin_position}
-- Rough height: ${conditions.rough_height_inches} inches
-- Fairway roll: ${conditions.fairway_roll_yards} yards
-
-Instructions:
-- Read the image carefully — extract all visible yardages, hazards, landing zones, green info
-- Match hole to the correct game plan category and scoring goal
-- Use approach scoring zones to determine ideal tee shot layup distance
-- Check pin_location_heatmaps for the current pin position at expected approach distance
-- State the heatmap SQ score and whether to attack or bail
-- Account for dominant miss direction on every shot
-- Compare tee clubs by FIR% not just distance`,
+REMINDER:
+- All ClippD data is for internal reasoning only — never surface analytics language in the output
+- Final output must be caddie-compressed: one short line per field, decision-ready in one glance`,
     },
   ];
 
@@ -173,29 +229,28 @@ Instructions:
   return JSON.parse(cleaned);
 }
 
-const SECTION_META = [
-  { key: "hole_overview", label: "Hole Overview", icon: "🗺️" },
-  { key: "tee_shot",      label: "Tee Shot",       icon: "🏌️" },
-  { key: "approach",      label: "Approach",        icon: "🎯" },
-  { key: "scoring_zone",  label: "Scoring Zone",   icon: "📍" },
-  { key: "risk_reward",   label: "Risk / Reward",  icon: "⚖️" },
-  { key: "key_numbers",   label: "Key Numbers",    icon: "📐" },
+// Tournament card — 3 required + 3 optional
+const CARD_FIELDS = [
+  { key: "tee_intent",     label: "Tee Intent",     icon: "🏌️", required: true  },
+  { key: "approach_bias",  label: "Approach Bias",  icon: "🎯", required: true  },
+  { key: "miss_safety",    label: "Miss Safety",    icon: "↔",  required: true  },
+  { key: "ideal_leave",    label: "Ideal Leave",   icon: "📐", required: false },
+  { key: "primary_danger", label: "Primary Danger", icon: "✖",  required: false },
+  { key: "pin_adjustment", label: "Pin Adjustment", icon: "📍", required: false },
 ];
 
 function parseStrategy(parsed) {
   if (!parsed || typeof parsed !== "object") {
-    return SECTION_META.map(s => ({
-      ...s,
-      lines: s.key === "hole_overview" ? ["Strategy response could not be parsed. Try regenerating."] : [],
+    return CARD_FIELDS.map(f => ({
+      ...f,
+      value: f.key === "tee_intent" ? "Strategy could not be parsed. Try regenerating." : null,
     }));
   }
-  return SECTION_META.map(s => ({
-    ...s,
-    lines: Array.isArray(parsed[s.key])
-      ? parsed[s.key].map(l => String(l).replace(/^[-•*]\s*/, "").trim()).filter(Boolean)
-      : typeof parsed[s.key] === "string"
-        ? [parsed[s.key]]
-        : [],
+  return CARD_FIELDS.map(f => ({
+    ...f,
+    value: typeof parsed[f.key] === "string" && parsed[f.key].trim()
+      ? parsed[f.key].trim()
+      : null,
   }));
 }
 
@@ -312,7 +367,6 @@ export default function GolfGoStrategyGenerator() {
   const [holeData,setHoleData]=useState(null);
   const [parsedStrategy,setParsedStrategy]=useState([]);
   const [error,setError]=useState("");
-  const [activeSection,setActiveSection]=useState(0);
   const fileRef=useRef();
 
   const handleImageChange=useCallback((file)=>{
@@ -344,7 +398,7 @@ export default function GolfGoStrategyGenerator() {
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
-      setParsedStrategy(parseStrategy(result));setPhase("done");setActiveSection(0);
+      setParsedStrategy(parseStrategy(result));setPhase("done");
     }catch(e){setError(e.message);setPhase("error");}
   };
 
@@ -359,7 +413,7 @@ export default function GolfGoStrategyGenerator() {
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
-      setParsedStrategy(parseStrategy(result));setPhase("done");setActiveSection(0);
+      setParsedStrategy(parseStrategy(result));setPhase("done");
     }catch(e){setError(e.message);setPhase("error");}
   };
 
@@ -689,28 +743,27 @@ export default function GolfGoStrategyGenerator() {
                 <span style={{marginLeft:"auto",fontSize:12,color:"#6dab82"}}>{player.name} · {weather.wind_tier} {weather.wind_effect} · Pin {conditions.pin_position}</span>
               </div>
 
-              <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
-                {parsedStrategy.map((s,i)=><button key={s.key} className={`section-tab ${activeSection===i?"active":""}`} onClick={()=>setActiveSection(i)}>{s.icon} {s.label}</button>)}
+              {/* Tournament card — 3 required rows */}
+              <div className="panel" style={{padding:0,overflow:"hidden",marginBottom:10}}>
+                {parsedStrategy.filter(f=>f.required&&f.value).map((field,i,arr)=>(
+                  <div key={field.key} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"14px 18px",borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
+                    <div style={{width:110,flexShrink:0}}>
+                      <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600}}>{field.icon} {field.label}</div>
+                    </div>
+                    <div style={{fontSize:14,color:"#f0fdf4",fontFamily:"inherit",lineHeight:1.4,fontWeight:500}}>{field.value}</div>
+                  </div>
+                ))}
               </div>
 
-              {parsedStrategy[activeSection]&&(
-                <div className="panel fade-in" style={{padding:20}} key={activeSection}>
-                  <div style={{fontSize:15,color:"#4ade80",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
-                    <span>{parsedStrategy[activeSection].icon}</span>
-                    <span style={{fontFamily:"'Playfair Display',serif"}}>{parsedStrategy[activeSection].label}</span>
-                    {activeSection===0&&activeGoal&&<span style={{marginLeft:"auto",fontSize:10,padding:"2px 8px",borderRadius:4,background:goalColor.bg,border:`1px solid ${goalColor.border}`,color:goalColor.text}}>{activeGoal}</span>}
-                  </div>
-                  {parsedStrategy[activeSection].lines.length>0
-                    ?<div style={{display:"flex",flexDirection:"column",gap:10}}>
-                      {parsedStrategy[activeSection].lines.map((line,i)=>(
-                        <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",borderBottom:"1px solid rgba(255,255,255,0.04)",paddingBottom:10}}>
-                          <div style={{width:22,height:22,borderRadius:4,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#4ade80",flexShrink:0,marginTop:1}}>{i+1}</div>
-                          <div style={{fontSize:14,color:"#e4e9e6",lineHeight:1.7}}>{line}</div>
-                        </div>
-                      ))}
+              {/* Optional fields */}
+              {parsedStrategy.filter(f=>!f.required&&f.value).length>0&&(
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))",gap:8,marginBottom:10}}>
+                  {parsedStrategy.filter(f=>!f.required&&f.value).map(field=>(
+                    <div key={field.key} className="panel" style={{padding:"10px 14px"}}>
+                      <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5}}>{field.icon} {field.label}</div>
+                      <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{field.value}</div>
                     </div>
-                    :<div style={{fontSize:12,color:"#9ca3af"}}>No data for this section</div>
-                  }
+                  ))}
                 </div>
               )}
 
