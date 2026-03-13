@@ -159,6 +159,13 @@ HOLE CLASSIFICATION + SCORING GOAL:
 ${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label + " (" + c.sub + ")", gamePlan[c.key]])), null, 2)}
 → Identify which category this hole falls into. Pull the scoring goal. Use it to calibrate aggression across all 3 fields.
 
+SCORING GOAL DECISION KEY:
+- eagle attempt → go for green in two if reachable, driver + fairway wood, aggressive lines
+- birdie → standard play, leave best approach yardage, attack good pins
+- par protection → remove risk, club down off tee, miss away from trouble, center green
+- bogey avoidance → play away from doubles, accept bogey, never short-side
+- make cut → ultra conservative, fairways and greens, no hero shots
+
 PLAYER DNA:
 - Dexterity: ${playerDna.dexterity}-handed
 - Stock Shot Shape: ${shapeMeta?.label || playerDna.stock_shape} (${shapeMeta?.note || ""})
