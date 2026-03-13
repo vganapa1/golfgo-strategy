@@ -883,6 +883,39 @@ export default function GolfGoStrategyGenerator() {
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#f0fdf4"}}>Tournament Sheet</div>
             <GlowBadge color="emerald">{holeSheet.length} / 18 holes</GlowBadge>
             <span style={{marginLeft:"auto",fontSize:9,color:"#374151"}}>{player.name}</span>
+            <button
+              onClick={()=>{
+                const lines=[
+                  `GolfGo Tournament Sheet — ${player.name}`,
+                  `Generated: ${new Date().toLocaleDateString()}`,
+                  ``,
+                  `HOLE | PAR | YDS | GOAL | TEE INTENT | APPROACH BIAS | MISS SAFETY | IDEAL LEAVE | PRIMARY DANGER | PIN ADJUSTMENT`,
+                  `-----|-----|-----|------|------------|---------------|-------------|-------------|----------------|---------------`,
+                  ...[...holeSheet]
+                    .sort((a,b)=>(a.hole_number||0)-(b.hole_number||0))
+                    .map(h=>[
+                      `H${h.hole_number}`,
+                      h.par||"—",
+                      h.yardage?`${h.yardage}y`:"—",
+                      h.goal||"—",
+                      h.fields.tee_intent||"—",
+                      h.fields.approach_bias||"—",
+                      h.fields.miss_safety||"—",
+                      h.fields.ideal_leave||"—",
+                      h.fields.primary_danger||"—",
+                      h.fields.pin_adjustment||"—",
+                    ].join(" | ")),
+                ].join("\n");
+                const blob=new Blob([lines],{type:"text/plain"});
+                const url=URL.createObjectURL(blob);
+                const a=document.createElement("a");
+                a.href=url;
+                a.download=`${player.name.replace(/\s+/g,"_")}_tournament_sheet.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              style={{padding:"8px 18px",borderRadius:6,fontSize:12,fontFamily:"inherit",fontWeight:600,cursor:"pointer",border:"1px solid #22c55e",background:"linear-gradient(135deg,rgba(34,197,94,0.25),rgba(22,163,74,0.2))",color:"#4ade80",boxShadow:"0 0 12px rgba(34,197,94,0.25)",letterSpacing:"0.04em",whiteSpace:"nowrap"}}
+            >↓ Download Sheet</button>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
             {[...holeSheet].sort((a,b)=>(a.hole_number||0)-(b.hole_number||0)).map(entry=>{
