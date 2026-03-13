@@ -374,6 +374,9 @@ export default function GolfGoStrategyGenerator() {
   const [holeData,setHoleData]=useState(null);
   const [parsedStrategy,setParsedStrategy]=useState([]);
   const [error,setError]=useState("");
+  const [editMode,setEditMode]=useState(false);
+  const [editValues,setEditValues]=useState({});
+  const [holeSheet,setHoleSheet]=useState([]);
   const fileRef=useRef();
 
   const handleImageChange=useCallback((file)=>{
@@ -405,7 +408,13 @@ export default function GolfGoStrategyGenerator() {
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
-      setParsedStrategy(parseStrategy(result));setPhase("done");
+      const parsed=parseStrategy(result);
+      setParsedStrategy(parsed);
+      const flat={};
+      parsed.forEach(f=>{if(f.value)flat[f.key]=f.value;});
+      setEditValues(flat);
+      setEditMode(true);
+      setPhase("done");
     }catch(e){setError(e.message);setPhase("error");}
   };
 
@@ -420,14 +429,47 @@ export default function GolfGoStrategyGenerator() {
       const category=classifyHole(extracted,player);
       const goal=gamePlan[category];
       setDetectedCategory(category);setActiveGoal(goal);
-      setParsedStrategy(parseStrategy(result));setPhase("done");
+      const parsed=parseStrategy(result);
+      setParsedStrategy(parsed);
+      const flat={};
+      parsed.forEach(f=>{if(f.value)flat[f.key]=f.value;});
+      setEditValues(flat);
+      setEditMode(true);
+      setPhase("done");
     }catch(e){setError(e.message);setPhase("error");}
   };
 
   const reset=()=>{
     if(previewUrlRef.current){URL.revokeObjectURL(previewUrlRef.current);previewUrlRef.current=null;}
     imageBase64Ref.current=null;
+    setEditMode(false);
+    setEditValues({});
     setPhase("idle");setImageFile(null);setImagePreview(null);setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
+  };
+
+  const saveToSheet=()=>{
+    if(!editValues.tee_intent)return;
+    const entry={
+      id:Date.now(),
+      hole_number:holeData?.hole_number||holeSheet.length+1,
+      par:holeData?.par||null,
+      yardage:holeData?.yardages?.back||holeData?.yardages?.middle||null,
+      dogleg:holeData?.dogleg?.direction||null,
+      category:detectedCategory,
+      goal:activeGoal,
+      fields:{...editValues},
+      conditions:{pin_position:conditions.pin_position,wind_effect:weather.wind_effect,wind_tier:weather.wind_tier},
+    };
+    setHoleSheet(prev=>{
+      const exists=prev.findIndex(h=>h.hole_number===entry.hole_number);
+      if(exists>=0){const updated=[...prev];updated[exists]=entry;return updated;}
+      return [...prev,entry];
+    });
+    reset();
+  };
+
+  const removeFromSheet=(id)=>{
+    setHoleSheet(prev=>prev.filter(h=>h.id!==id));
   };
 
   const pinLabels=["front-left","front-center","front-right","middle-left","middle-center","middle-right","back-left","back-center","back-right"];
@@ -695,7 +737,6 @@ export default function GolfGoStrategyGenerator() {
             {phase==="thinking"?"⟳ Analyzing & Building Strategy...":"▶ Generate Strategy"}
           </button>
 
-          {phase==="done"&&holeData&&<button onClick={rerunWithOverride} style={{padding:"8px 16px",borderRadius:8,fontSize:13,color:"#4ade80",fontFamily:"inherit",background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",cursor:"pointer",width:"100%"}}>↺ Re-run with current goal override</button>}
 
           {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:10,fontSize:13,color:"#fca5a5"}}>⚠ {error}</div>}
         </div>
@@ -741,73 +782,138 @@ export default function GolfGoStrategyGenerator() {
                 {holeData?.dogleg?.direction&&holeData.dogleg.direction!=="none"&&<GlowBadge color="amber">Dogleg {holeData.dogleg.direction}</GlowBadge>}
                 {holeData?.elevation_change&&holeData.elevation_change!=="flat"&&<GlowBadge color="sky">{holeData.elevation_change}</GlowBadge>}
                 {detectedCategory&&activeGoal&&(
-                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
-                    <span style={{fontSize:12,color:"#c4cdd8"}}>{catMeta?.icon} {catMeta?.label}</span>
-                    <span style={{fontSize:12,color:"#6b7280"}}>→</span>
-                    <span style={{fontSize:12,color:goalColor.text,fontWeight:600}}>{activeGoal}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,padding:"4px 10px",borderRadius:6,background:goalColor.bg,border:`1px solid ${goalColor.border}`}}>
+                    <span style={{fontSize:10,color:"#6b7280"}}>{catMeta?.icon} {catMeta?.label}</span>
+                    <span style={{fontSize:9,color:"#374151"}}>→</span>
+                    <span style={{fontSize:10,color:goalColor.text,fontWeight:500}}>{activeGoal}</span>
                   </div>
                 )}
-                <span style={{marginLeft:"auto",fontSize:12,color:"#6dab82"}}>{player.name} · {weather.wind_tier} {weather.wind_effect} · Pin {conditions.pin_position}</span>
+                <span style={{marginLeft:"auto",fontSize:9,color:"#4b7a5e"}}>{player.name} · {weather.wind_tier} {weather.wind_effect} · Pin {conditions.pin_position}</span>
               </div>
 
-              {/* Tournament card — 3 required rows */}
+              {editMode&&(
+                <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>✏️ Review &amp; edit before saving</div>
+              )}
+
               <div className="panel" style={{padding:0,overflow:"hidden",marginBottom:10}}>
-                {parsedStrategy.filter(f=>f.required&&f.value).map((field,i,arr)=>(
+                {CARD_FIELDS.filter(f=>f.required).map((field,i,arr)=>(
                   <div key={field.key} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"14px 18px",borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
-                    <div style={{width:110,flexShrink:0}}>
+                    <div style={{width:110,flexShrink:0,paddingTop:2}}>
                       <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.12em",fontWeight:600}}>{field.icon} {field.label}</div>
                     </div>
-                    <div style={{fontSize:14,color:"#f0fdf4",fontFamily:"inherit",lineHeight:1.4,fontWeight:500}}>{field.value}</div>
+                    {editMode?(
+                      <textarea
+                        value={editValues[field.key]||""}
+                        onChange={e=>setEditValues(prev=>({...prev,[field.key]:e.target.value}))}
+                        rows={1}
+                        style={{flex:1,fontSize:13,color:"#f0fdf4",fontFamily:"inherit",background:"rgba(34,197,94,0.05)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:4,padding:"4px 8px",resize:"vertical",outline:"none",lineHeight:1.5}}
+                      />
+                    ):(
+                      <div style={{fontSize:14,color:"#f0fdf4",fontFamily:"inherit",lineHeight:1.4,fontWeight:500}}>{editValues[field.key]}</div>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* Optional fields */}
-              {parsedStrategy.filter(f=>!f.required&&f.value).length>0&&(
+              {CARD_FIELDS.filter(f=>!f.required).some(f=>editMode||editValues[f.key])&&(
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(200px, 1fr))",gap:8,marginBottom:10}}>
-                  {parsedStrategy.filter(f=>!f.required&&f.value).map(field=>(
-                    <div key={field.key} className="panel" style={{padding:"10px 14px"}}>
-                      <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5}}>{field.icon} {field.label}</div>
-                      <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{field.value}</div>
-                    </div>
-                  ))}
+                  {CARD_FIELDS.filter(f=>!f.required).map(field=>{
+                    const hasValue=editValues[field.key];
+                    if(!editMode&&!hasValue)return null;
+                    return (
+                      <div key={field.key} className="panel" style={{padding:"10px 14px"}}>
+                        <div style={{fontSize:9,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:5}}>{field.icon} {field.label}</div>
+                        {editMode?(
+                          <textarea
+                            value={editValues[field.key]||""}
+                            onChange={e=>setEditValues(prev=>({...prev,[field.key]:e.target.value}))}
+                            placeholder={`Add ${field.label.toLowerCase()}...`}
+                            rows={1}
+                            style={{width:"100%",fontSize:12,color:"#d1d5db",fontFamily:"inherit",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:4,padding:"4px 6px",resize:"vertical",outline:"none",lineHeight:1.4}}
+                          />
+                        ):(
+                          <div style={{fontSize:12,color:"#d1d5db",lineHeight:1.4}}>{hasValue}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
+              <div style={{display:"flex",gap:8,marginBottom:14}}>
+                <button
+                  onClick={saveToSheet}
+                  disabled={!editValues.tee_intent}
+                  style={{flex:1,padding:"10px 0",borderRadius:6,fontSize:12,fontFamily:"inherit",fontWeight:600,cursor:"pointer",background:"rgba(34,197,94,0.15)",color:"#4ade80",border:"1px solid rgba(34,197,94,0.3)",opacity:!editValues.tee_intent?0.4:1}}
+                >✓ Save to Sheet</button>
+                <button
+                  onClick={rerunWithOverride}
+                  style={{padding:"10px 18px",borderRadius:6,fontSize:12,fontFamily:"inherit",cursor:"pointer",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"#6b7280"}}
+                >↺ Regenerate</button>
+                <button
+                  onClick={reset}
+                  style={{padding:"10px 18px",borderRadius:6,fontSize:12,fontFamily:"inherit",cursor:"pointer",border:"1px solid rgba(255,255,255,0.06)",background:"none",color:"#374151"}}
+                >✕ Discard</button>
+              </div>
+
               {holeData&&(
-                <div className="panel" style={{padding:16,marginTop:14}}>
-                  <div style={{fontSize:12,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10,fontWeight:600}}>Raw Hole Data</div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:10}}>
-                    {holeData.yardages&&Object.entries(holeData.yardages).filter(([,v])=>v).map(([k,v])=>(
-                      <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
-                        <div style={{fontSize:11,color:"#6dab82",textTransform:"uppercase",letterSpacing:"0.08em"}}>{k}</div>
-                        <div style={{fontSize:18,color:"#d1fae5",fontWeight:600,marginTop:2}}>{v}</div>
-                        <div style={{fontSize:11,color:"#9ca3af"}}>yards</div>
-                      </div>
-                    ))}
-                    {holeData.green&&Object.entries({"Front":holeData.green.front_distance,"Mid":holeData.green.middle_distance,"Back":holeData.green.back_distance}).filter(([,v])=>v).map(([k,v])=>(
-                      <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
-                        <div style={{fontSize:11,color:"#6dab82",textTransform:"uppercase",letterSpacing:"0.08em"}}>Green {k}</div>
-                        <div style={{fontSize:18,color:"#d1fae5",fontWeight:600,marginTop:2}}>{v}</div>
-                        <div style={{fontSize:11,color:"#9ca3af"}}>yards</div>
-                      </div>
-                    ))}
-                  </div>
-                  {holeData.hazards?.length>0&&(
-                    <div style={{marginTop:10}}>
-                      <div style={{fontSize:12,color:"#c4cdd8",marginBottom:6,fontWeight:600}}>Hazards</div>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                        {holeData.hazards.map((h,i)=><div key={i} style={{fontSize:12,color:"#fca5a5",background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:4,padding:"3px 9px"}}>{h.type} · {h.side||h.location}{(h.distance_to_carry??h.distance_from_tee)?` · ${h.distance_to_carry??h.distance_from_tee}yds`:""}</div>)}
-                      </div>
+                <details style={{marginTop:4}}>
+                  <summary style={{fontSize:9,color:"#4b7a5e",letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",marginBottom:8}}>AI Extraction · Raw Hole Data</summary>
+                  <div className="panel" style={{padding:16,marginTop:6}}>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8}}>
+                      {holeData.yardages&&Object.entries(holeData.yardages).filter(([,v])=>v).map(([k,v])=>(
+                        <div key={k} style={{background:"rgba(255,255,255,0.02)",borderRadius:6,padding:"7px 10px"}}>
+                          <div style={{fontSize:8,color:"#4b7a5e",textTransform:"uppercase",letterSpacing:"0.1em"}}>{k}</div>
+                          <div style={{fontSize:17,color:"#d1fae5",fontWeight:500,marginTop:2}}>{v}</div>
+                          <div style={{fontSize:8,color:"#374151"}}>yards</div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                  <button onClick={reset} style={{marginTop:12,fontSize:13,color:"#6dab82",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",textDecoration:"underline"}}>← Analyze another hole</button>
-                </div>
+                  </div>
+                </details>
               )}
             </div>
           )}
         </div>
       </div>
+
+      {holeSheet.length>0&&(
+        <div style={{marginTop:32,padding:"0 20px 40px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#f0fdf4"}}>Tournament Sheet</div>
+            <GlowBadge color="emerald">{holeSheet.length} / 18 holes</GlowBadge>
+            <span style={{marginLeft:"auto",fontSize:9,color:"#374151"}}>{player.name}</span>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {[...holeSheet].sort((a,b)=>(a.hole_number||0)-(b.hole_number||0)).map(entry=>{
+              const gc=GOAL_COLORS[entry.goal]||GOAL_COLORS["par protection"];
+              return (
+                <div key={entry.id} className="panel" style={{padding:"12px 16px",display:"grid",alignItems:"center",gap:10,gridTemplateColumns:"60px 40px 70px 1fr 1fr 1fr 28px"}}>
+                  <div>
+                    <div style={{fontSize:11,color:"#f0fdf4",fontWeight:600}}>Hole {entry.hole_number}</div>
+                    <div style={{fontSize:9,color:"#4b7a5e"}}>Par {entry.par}</div>
+                  </div>
+                  <div style={{fontSize:10,color:"#6b7280"}}>{entry.yardage?`${entry.yardage}y`:"—"}</div>
+                  <div style={{fontSize:8,padding:"2px 6px",borderRadius:4,background:gc.bg,border:`1px solid ${gc.border}`,color:gc.text,textAlign:"center",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.goal}</div>
+                  <div style={{fontSize:11,color:"#e4e9e6",lineHeight:1.3}}>
+                    <span style={{fontSize:8,color:"#4b7a5e",display:"block",marginBottom:1}}>TEE</span>
+                    {entry.fields.tee_intent||"—"}
+                  </div>
+                  <div style={{fontSize:11,color:"#e4e9e6",lineHeight:1.3}}>
+                    <span style={{fontSize:8,color:"#4b7a5e",display:"block",marginBottom:1}}>APPROACH</span>
+                    {entry.fields.approach_bias||"—"}
+                  </div>
+                  <div style={{fontSize:11,color:"#e4e9e6",lineHeight:1.3}}>
+                    <span style={{fontSize:8,color:"#4b7a5e",display:"block",marginBottom:1}}>MISS</span>
+                    {entry.fields.miss_safety||"—"}
+                  </div>
+                  <button onClick={()=>removeFromSheet(entry.id)} style={{background:"none",border:"none",color:"#374151",cursor:"pointer",fontSize:14,padding:0,fontFamily:"inherit"}} title="Remove hole">✕</button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
     </div>
   );
