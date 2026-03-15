@@ -941,32 +941,21 @@ export default function GolfGoStrategyGenerator() {
             <span style={{marginLeft:"auto",fontSize:9,color:"#374151"}}>{player.name}</span>
             <button
               onClick={()=>{
-                const lines=[
-                  `GolfGo Tournament Sheet — ${player.name}`,
-                  `Generated: ${new Date().toLocaleDateString()}`,
-                  ``,
-                  `HOLE | PAR | YDS | GOAL | TEE INTENT | APPROACH BIAS | MISS SAFETY | IDEAL LEAVE | PRIMARY DANGER | PIN ADJUSTMENT`,
-                  `-----|-----|-----|------|------------|---------------|-------------|-------------|----------------|---------------`,
-                  ...[...holeSheet]
-                    .sort((a,b)=>(a.hole_number||0)-(b.hole_number||0))
-                    .map(h=>[
-                      `H${h.hole_number}`,
-                      h.par||"—",
-                      h.yardage?`${h.yardage}y`:"—",
-                      h.goal||"—",
-                      h.fields.tee_intent||"—",
-                      h.fields.approach_bias||"—",
-                      h.fields.miss_safety||"—",
-                      h.fields.ideal_leave||"—",
-                      h.fields.primary_danger||"—",
-                      h.fields.pin_adjustment||"—",
-                    ].join(" | ")),
-                ].join("\n");
-                const blob=new Blob([lines],{type:"text/plain"});
+                const sorted=[...holeSheet].sort((a,b)=>(a.hole_number||0)-(b.hole_number||0));
+                const date=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                const goalColors={"eagle attempt":"#92400e","birdie":"#14532d","par protection":"#1e3a8a","bogey avoidance":"#581c87","make cut":"#7f1d1d"};
+                const rows=sorted.map((h,idx)=>{
+                  const gc=goalColors[h.goal]||"#374151";
+                  const isEven=idx%2===1;
+                  const optionals=[h.fields.ideal_leave?`<span class="opt-label">Leave</span> ${h.fields.ideal_leave}`:"",h.fields.primary_danger?`<span class="opt-label">Danger</span> ${h.fields.primary_danger}`:"",h.fields.pin_adjustment?`<span class="opt-label">Pin</span> ${h.fields.pin_adjustment}`:""].filter(Boolean).join("  ·  ");
+                  return `<tr class="${isEven?"row-even":"row-odd"}${h.hole_number===10?" hole-10":""}"><td class="hole-cell"><div class="hole-num">H${h.hole_number}</div><div class="hole-sub">Par ${h.par||"—"}</div><div class="hole-sub">${h.yardage?h.yardage+"y":"—"}</div></td><td class="goal-cell"><span class="goal-pill" style="color:${gc};border-color:${gc}">${h.goal||"—"}</span><div class="conditions">${h.conditions?.wind_tier||""} ${h.conditions?.wind_effect||""} · Pin ${h.conditions?.pin_position||"—"}</div></td><td class="strategy-cell"><div class="field-row"><span class="field-label">TEE</span><span class="field-val">${h.fields.tee_intent||"—"}</span></div><div class="field-row"><span class="field-label">APP</span><span class="field-val">${h.fields.approach_bias||"—"}</span></div><div class="field-row"><span class="field-label">MISS</span><span class="field-val">${h.fields.miss_safety||"—"}</span></div>${optionals?`<div class="optionals">${optionals}</div>`:""}</td></tr>`;
+                }).join("");
+                const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${player.name} — Tournament Card</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Mono','Courier New',monospace;font-size:13px;background:#f8fafc;color:#111827;padding:32px;max-width:900px;margin:0 auto}.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #111827}.header-left h1{font-size:22px;font-weight:700;letter-spacing:-0.02em}.header-left .subtitle{font-size:11px;color:#6b7280;margin-top:3px}.header-right{font-size:10px;color:#9ca3af;text-align:right}.logo{font-size:11px;font-weight:700;letter-spacing:0.1em;color:#059669;text-transform:uppercase}table{width:100%;border-collapse:collapse}thead th{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#9ca3af;padding:6px 10px;border-bottom:1px solid #d1d5db;text-align:left}tbody tr{border-bottom:1px solid #e5e7eb}tbody tr:last-child{border-bottom:2px solid #111827}.row-even .hole-cell{border-left:3px solid #059669}.row-odd .hole-cell{border-left:3px solid transparent}.hole-cell{padding:10px 10px 10px 8px;width:62px;vertical-align:top;border-right:1px solid #e5e7eb}.hole-num{font-size:16px;font-weight:700;color:#111827;line-height:1}.hole-sub{font-size:10px;color:#6b7280;margin-top:2px}.goal-cell{padding:10px;width:145px;vertical-align:top;border-right:1px solid #e5e7eb}.goal-pill{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:2px 7px;border-radius:3px;border:1px solid;background:transparent}.conditions{font-size:9px;color:#9ca3af;margin-top:5px;line-height:1.4;text-transform:capitalize}.strategy-cell{padding:10px 12px;vertical-align:top}.field-row{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}.field-row:last-of-type{margin-bottom:0}.field-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#059669;width:32px;flex-shrink:0}.field-val{font-size:12px;color:#111827;line-height:1.4}.optionals{font-size:10px;color:#6b7280;margin-top:6px;padding-top:5px;border-top:1px dashed #e5e7eb}.opt-label{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:#9ca3af;margin-right:3px}.footer{margin-top:16px;font-size:9px;color:#d1d5db;text-align:center}@media print{body{background:#fff;padding:12mm 10mm;font-size:11px;max-width:100%}.header{margin-bottom:10px;padding-bottom:8px}.header-left h1{font-size:16px}.row-even .hole-cell{border-left:3px solid #059669}.row-odd .hole-cell{border-left:3px solid transparent}.hole-num{font-size:14px}.field-val{font-size:11px}.footer{display:none}tr{page-break-inside:avoid}tr.hole-10{page-break-before:always}}</style></head><body><div class="header"><div class="header-left"><h1>${player.name}</h1><div class="subtitle">Tournament Strategy Card &nbsp;·&nbsp; ${sorted.length} of 18 holes &nbsp;·&nbsp; ${date}</div></div><div class="header-right"><div class="logo">GolfGo</div><div style="margin-top:3px">Print &amp; carry in yardage book</div></div></div><table><thead><tr><th>Hole</th><th>Goal &amp; Conditions</th><th>Strategy</th></tr></thead><tbody>${rows}</tbody></table><div class="footer">Generated by GolfGo</div></body></html>`;
+                const blob=new Blob([html],{type:"text/html"});
                 const url=URL.createObjectURL(blob);
                 const a=document.createElement("a");
                 a.href=url;
-                a.download=`${player.name.replace(/\s+/g,"_")}_tournament_sheet.txt`;
+                a.download=`${player.name.replace(/\s+/g,"_")}_tournament_card.html`;
                 a.click();
                 URL.revokeObjectURL(url);
               }}
