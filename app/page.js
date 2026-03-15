@@ -155,7 +155,7 @@ BAD OUTPUT (never do this):
       type: "image_url",
       image_url: {
         url: `data:${mimeType2};base64,${base64Image2}`,
-        detail: "high",
+        detail: "auto",
       },
     }] : []),
     {
@@ -234,15 +234,20 @@ REMINDER:
     }),
   });
 
+  let rawBody;
+  try { rawBody = await response.text(); } catch { throw new Error("No response from strategy API"); }
+
+  let data;
+  try { data = JSON.parse(rawBody); } catch { throw new Error(`Strategy API returned invalid response (HTTP ${response.status})`); }
+
   if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error?.message || "Strategy API error");
+    throw new Error(data.error?.message || `Strategy API error (HTTP ${response.status})`);
   }
 
-  const data = await response.json();
   const text = data.choices?.[0]?.message?.content || "";
   const cleaned = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(cleaned);
+  if (!cleaned) throw new Error("AI returned an empty response — try again or use a smaller image");
+  try { return JSON.parse(cleaned); } catch { throw new Error("AI response was not valid JSON — try regenerating"); }
 }
 
 // Tournament card — 3 required + 3 optional
