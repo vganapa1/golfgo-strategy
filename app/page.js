@@ -62,7 +62,7 @@ function classifyHole(holeData, playerProfile) {
 
 // ─── Vision + Strategy (single call) ─────────────────────────────────────────
 
-async function generateStrategy(base64Image, mimeType, playerProfile, playerDna, weather, conditions, gamePlan) {
+async function generateStrategy(base64Image, mimeType, playerProfile, playerDna, weather, conditions, gamePlan, base64Image2 = null, mimeType2 = null) {
   const shapeMeta  = SHOT_SHAPES.find(s => s.value === playerDna.stock_shape);
   const flightMeta = BALL_FLIGHTS.find(f => f.value === playerDna.ball_flight);
 
@@ -151,9 +151,18 @@ BAD OUTPUT (never do this):
         detail: "high",
       },
     },
+    ...(base64Image2 ? [{
+      type: "image_url",
+      image_url: {
+        url: `data:${mimeType2};base64,${base64Image2}`,
+        detail: "high",
+      },
+    }] : []),
     {
       type: "text",
-      text: `Read this yardage book image and return a tournament strategy card.
+      text: `${base64Image2
+        ? "Image 1: Hole overview / yardage book — extract hole layout, yardages, hazards, landing zones.\nImage 2: Green map or aerial — use for green geometry, slope, pin context, and depth detail.\n\n"
+        : ""}Read this yardage book image and return a tournament strategy card.
 
 HOLE CLASSIFICATION + SCORING GOAL:
 ${JSON.stringify(Object.fromEntries(HOLE_CATEGORIES.map(c => [c.label + " (" + c.sub + ")", gamePlan[c.key]])), null, 2)}
@@ -359,6 +368,11 @@ export default function GolfGoStrategyGenerator() {
   const [imageMime,setImageMime]=useState("image/jpeg");
   const imageBase64Ref=useRef(null);
   const previewUrlRef=useRef(null);
+  const [imageFile2,setImageFile2]=useState(null);
+  const [imagePreview2,setImagePreview2]=useState(null);
+  const [imageMime2,setImageMime2]=useState("image/jpeg");
+  const imageBase64Ref2=useRef(null);
+  const previewUrlRef2=useRef(null);
   const [weather,setWeather]=useState({wind_effect:"into",wind_tier:"moderate",temperature_f:72,firmness:"normal",green_speed_stimp:11});
   const [conditions,setConditions]=useState({pin_position:"middle-center",rough_height_inches:2.5,fairway_roll_yards:6});
   const [player,setPlayer]=useState(DEFAULT_PLAYER);
@@ -378,6 +392,7 @@ export default function GolfGoStrategyGenerator() {
   const [editValues,setEditValues]=useState({});
   const [holeSheet,setHoleSheet]=useState([]);
   const fileRef=useRef();
+  const fileRef2=useRef();
 
   const handleImageChange=useCallback((file)=>{
     if(!file)return;
@@ -392,17 +407,34 @@ export default function GolfGoStrategyGenerator() {
   },[]);
 
   useEffect(()=>{
-    return ()=>{if(previewUrlRef.current)URL.revokeObjectURL(previewUrlRef.current);};
+    return ()=>{
+      if(previewUrlRef.current)URL.revokeObjectURL(previewUrlRef.current);
+      if(previewUrlRef2.current)URL.revokeObjectURL(previewUrlRef2.current);
+    };
   },[]);
 
   const handleDrop=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange(f);},[handleImageChange]);
+
+  const handleImageChange2=useCallback((file)=>{
+    if(!file)return;
+    setImageFile2(file);setImageMime2(file.type||"image/jpeg");
+    if(previewUrlRef2.current)URL.revokeObjectURL(previewUrlRef2.current);
+    const objectUrl=URL.createObjectURL(file);
+    previewUrlRef2.current=objectUrl;
+    setImagePreview2(objectUrl);
+    const r=new FileReader();
+    r.onload=e=>{imageBase64Ref2.current=e.target.result.split(",")[1];};
+    r.readAsDataURL(file);
+  },[]);
+
+  const handleDrop2=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange2(f);},[handleImageChange2]);
 
   const runPipeline=async()=>{
     if(!imageBase64Ref.current){setError("Upload a yardage book image");return;}
     setError("");setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
     try{
       setPhase("thinking");
-      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan,imageBase64Ref2.current||null,imageMime2||null);
       const extracted=result.hole_data||{};
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
@@ -423,7 +455,7 @@ export default function GolfGoStrategyGenerator() {
     setError("");setParsedStrategy([]);
     try{
       setPhase("thinking");
-      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan);
+      const result=await generateStrategy(imageBase64Ref.current,imageMime,player,playerDna,weather,conditions,gamePlan,imageBase64Ref2.current||null,imageMime2||null);
       const extracted=result.hole_data||holeData;
       setHoleData(extracted);
       const category=classifyHole(extracted,player);
@@ -442,6 +474,9 @@ export default function GolfGoStrategyGenerator() {
   const reset=()=>{
     if(previewUrlRef.current){URL.revokeObjectURL(previewUrlRef.current);previewUrlRef.current=null;}
     imageBase64Ref.current=null;
+    if(previewUrlRef2.current){URL.revokeObjectURL(previewUrlRef2.current);previewUrlRef2.current=null;}
+    imageBase64Ref2.current=null;
+    setImageFile2(null);setImagePreview2(null);
     setEditMode(false);
     setEditValues({});
     setPhase("idle");setImageFile(null);setImagePreview(null);setHoleData(null);setParsedStrategy([]);setDetectedCategory(null);setActiveGoal(null);
@@ -524,13 +559,34 @@ export default function GolfGoStrategyGenerator() {
 
           {/* Image upload */}
           <div className="panel" style={{padding:14}}>
-            <div style={{fontSize:13,color:"#6dab82",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8,fontWeight:600}}>Yardage Book Image</div>
-            <div className="drop-zone" style={{border:"1px dashed rgba(255,255,255,0.12)",borderRadius:8,padding:imagePreview?0:"18px 16px",textAlign:"center",cursor:"pointer",overflow:"hidden",transition:"all 0.2s"}}
+            <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Yardage Book Image</div>
+            <div className="drop-zone" style={{border:"1px dashed rgba(255,255,255,0.12)",borderRadius:8,padding:imagePreview?0:"18px 16px",textAlign:"center",cursor:"pointer",overflow:"hidden"}}
               onClick={()=>fileRef.current?.click()} onDrop={handleDrop} onDragOver={e=>e.preventDefault()}>
-              {imagePreview?<img src={imagePreview} alt="Yardage book" style={{width:"100%",display:"block",borderRadius:8}}/>:<><div style={{fontSize:22,marginBottom:4}}>📷</div><div style={{fontSize:13,color:"#c4cdd8"}}>Drop or click to upload</div><div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>JPG · PNG · WEBP</div></>}
+              {imagePreview?<img src={imagePreview} alt="Yardage book" style={{width:"100%",display:"block",borderRadius:8}}/>:<><div style={{fontSize:22,marginBottom:4}}>📷</div><div style={{fontSize:11,color:"#6b7280"}}>Drop or click to upload</div><div style={{fontSize:9,color:"#374151",marginTop:2}}>JPG · PNG · WEBP</div></>}
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleImageChange(e.target.files[0])}/>
-            {imageFile&&<div style={{fontSize:12,color:"#6dab82",marginTop:5}}>✓ {imageFile.name}</div>}
+            {imageFile&&<div style={{fontSize:9,color:"#4b7a5e",marginTop:5}}>✓ {imageFile.name}</div>}
+
+            <div style={{borderTop:"1px solid rgba(255,255,255,0.05)",margin:"12px 0"}}/>
+
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <div style={{fontSize:10,color:"#4b7a5e",letterSpacing:"0.12em",textTransform:"uppercase"}}>Green Map / Aerial</div>
+              <div style={{fontSize:9,color:"#374151"}}>optional</div>
+            </div>
+            <div className="drop-zone" style={{border:"1px dashed rgba(255,255,255,0.08)",borderRadius:8,padding:imagePreview2?0:"14px 16px",textAlign:"center",cursor:"pointer",overflow:"hidden",opacity:0.8}}
+              onClick={()=>fileRef2.current?.click()} onDrop={handleDrop2} onDragOver={e=>e.preventDefault()}>
+              {imagePreview2?(
+                <div style={{position:"relative"}}>
+                  <img src={imagePreview2} alt="Green map" style={{width:"100%",display:"block",borderRadius:8}}/>
+                  <button
+                    onClick={e=>{e.stopPropagation();if(previewUrlRef2.current)URL.revokeObjectURL(previewUrlRef2.current);previewUrlRef2.current=null;imageBase64Ref2.current=null;setImageFile2(null);setImagePreview2(null);}}
+                    style={{position:"absolute",top:6,right:6,background:"rgba(0,0,0,0.6)",border:"none",borderRadius:4,color:"#9ca3af",fontSize:10,cursor:"pointer",padding:"2px 6px",fontFamily:"inherit"}}
+                  >✕ Remove</button>
+                </div>
+              ):<><div style={{fontSize:18,marginBottom:4,opacity:0.5}}>🗺️</div><div style={{fontSize:10,color:"#4b5563"}}>Drop or click to add</div><div style={{fontSize:9,color:"#374151",marginTop:2}}>Green map · Aerial · Course overview</div></>}
+            </div>
+            <input ref={fileRef2} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleImageChange2(e.target.files[0])}/>
+            {imageFile2&&<div style={{fontSize:9,color:"#4b7a5e",marginTop:5}}>✓ {imageFile2.name}</div>}
           </div>
 
           {/* Game plan */}
