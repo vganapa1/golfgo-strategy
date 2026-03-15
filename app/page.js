@@ -399,17 +399,34 @@ export default function GolfGoStrategyGenerator() {
   const fileRef=useRef();
   const fileRef2=useRef();
 
-  const handleImageChange=useCallback((file)=>{
+  const compressImage=useCallback((file,maxDim=1600,quality=0.8)=>{
+    return new Promise((resolve)=>{
+      const img=new Image();
+      const url=URL.createObjectURL(file);
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>maxDim||h>maxDim){const r=Math.min(maxDim/w,maxDim/h);w=Math.round(w*r);h=Math.round(h*r);}
+        const c=document.createElement("canvas");c.width=w;c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        const dataUrl=c.toDataURL("image/jpeg",quality);
+        URL.revokeObjectURL(url);
+        resolve(dataUrl.split(",")[1]);
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);resolve(null);};
+      img.src=url;
+    });
+  },[]);
+
+  const handleImageChange=useCallback(async(file)=>{
     if(!file)return;
-    setImageFile(file);setImageMime(file.type||"image/jpeg");
+    setImageFile(file);setImageMime("image/jpeg");
     if(previewUrlRef.current){URL.revokeObjectURL(previewUrlRef.current);}
     const objectUrl=URL.createObjectURL(file);
     previewUrlRef.current=objectUrl;
     setImagePreview(objectUrl);
-    const r=new FileReader();
-    r.onload=e=>{imageBase64Ref.current=e.target.result.split(",")[1];};
-    r.readAsDataURL(file);
-  },[]);
+    const compressed=await compressImage(file);
+    imageBase64Ref.current=compressed;
+  },[compressImage]);
 
   useEffect(()=>{
     return ()=>{
@@ -420,17 +437,16 @@ export default function GolfGoStrategyGenerator() {
 
   const handleDrop=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange(f);},[handleImageChange]);
 
-  const handleImageChange2=useCallback((file)=>{
+  const handleImageChange2=useCallback(async(file)=>{
     if(!file)return;
-    setImageFile2(file);setImageMime2(file.type||"image/jpeg");
+    setImageFile2(file);setImageMime2("image/jpeg");
     if(previewUrlRef2.current)URL.revokeObjectURL(previewUrlRef2.current);
     const objectUrl=URL.createObjectURL(file);
     previewUrlRef2.current=objectUrl;
     setImagePreview2(objectUrl);
-    const r=new FileReader();
-    r.onload=e=>{imageBase64Ref2.current=e.target.result.split(",")[1];};
-    r.readAsDataURL(file);
-  },[]);
+    const compressed=await compressImage(file);
+    imageBase64Ref2.current=compressed;
+  },[compressImage]);
 
   const handleDrop2=useCallback(e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type.startsWith("image/"))handleImageChange2(f);},[handleImageChange2]);
 
