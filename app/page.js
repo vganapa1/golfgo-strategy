@@ -209,7 +209,7 @@ Avoid zones: ${JSON.stringify(playerProfile.strategic_summary?.avoid || [])}
 → Use dominant miss to set miss_safety. If dominant miss aligns with a hazard, flag it in primary_danger.
 
 WEATHER:
-- Wind: ${weather.wind_effect} · ${weather.wind_tier === "light" ? "light 1–10mph" : weather.wind_tier === "moderate" ? "moderate 11–20mph" : "strong 20+mph"}
+- Wind: ${weather.wind_effect} at ${weather.wind_speed_mph} mph (${windTier(weather.wind_speed_mph)})
 - Temp: ${weather.temperature_f}°F · Stimp: ${weather.green_speed_stimp} · Firmness: ${weather.firmness}
 - Fairway roll: ${conditions.fairway_roll_yards}yds · Rough: ${conditions.rough_height_inches}in
 
@@ -367,6 +367,13 @@ function GamePlanPanel({ gamePlan, setGamePlan, detectedCategory, activeGoal, se
   );
 }
 
+function windTier(mph) {
+  const n=parseInt(mph)||0;
+  if(n<=10)return"light";
+  if(n<=20)return"moderate";
+  return"strong";
+}
+
 export default function GolfGoStrategyGenerator() {
   const [imageFile,setImageFile]=useState(null);
   const [imagePreview,setImagePreview]=useState(null); // object URL — not base64 (avoids Chrome crash)
@@ -378,7 +385,7 @@ export default function GolfGoStrategyGenerator() {
   const [imageMime2,setImageMime2]=useState("image/jpeg");
   const imageBase64Ref2=useRef(null);
   const previewUrlRef2=useRef(null);
-  const [weather,setWeather]=useState({wind_effect:"into",wind_tier:"moderate",temperature_f:72,firmness:"normal",green_speed_stimp:11});
+  const [weather,setWeather]=useState({wind_effect:"into",wind_speed_mph:9,temperature_f:72,firmness:"normal",green_speed_stimp:11});
   const [conditions,setConditions]=useState({pin_position:"middle-center",rough_height_inches:2.5,fairway_roll_yards:6});
   const [player,setPlayer]=useState(DEFAULT_PLAYER);
   const [editingPlayer,setEditingPlayer]=useState(false);
@@ -514,7 +521,7 @@ export default function GolfGoStrategyGenerator() {
       category:detectedCategory,
       goal:activeGoal,
       fields:{...editValues},
-      conditions:{pin_position:conditions.pin_position,wind_effect:weather.wind_effect,wind_tier:weather.wind_tier},
+      conditions:{pin_position:conditions.pin_position,wind_effect:weather.wind_effect,wind_speed_mph:weather.wind_speed_mph,wind_tier:windTier(weather.wind_speed_mph)},
     };
     setHoleSheet(prev=>{
       const exists=prev.findIndex(h=>h.hole_number===entry.hole_number);
@@ -662,27 +669,23 @@ export default function GolfGoStrategyGenerator() {
               </div>
               <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"#60a5fa"}}>{weather.wind_effect?`Wind: ${weather.wind_effect}`:<span style={{color:"#9ca3af"}}>tap a direction</span>}</div>
             </div>
-            {/* Wind Speed Tier */}
+            {/* Wind Speed */}
             <div style={{marginBottom:12}}>
-              <div style={{fontSize:12,color:"#c4cdd8",marginBottom:6}}>Wind strength</div>
-              <div style={{display:"flex",gap:5}}>
-                {[
-                  {key:"light",label:"🟢 Light",sub:"1–10 mph"},
-                  {key:"moderate",label:"🟡 Moderate",sub:"11–20 mph"},
-                  {key:"strong",label:"🔴 Strong",sub:"20+ mph"},
-                ].map(tier=>{
-                  const active=weather.wind_tier===tier.key;
-                  return(
-                    <button key={tier.key} onClick={()=>setWeather({...weather,wind_tier:tier.key})}
-                      style={{flex:1,padding:"7px 4px",borderRadius:6,fontSize:10,cursor:"pointer",fontFamily:"inherit",textAlign:"center",transition:"all 0.12s",lineHeight:1.4,
-                        background:active?"rgba(255,255,255,0.07)":"rgba(255,255,255,0.02)",
-                        border:`1px solid ${active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"}`,
-                        color:active?"#e4e9e6":"#9ca3af"}}>
-                      <div>{tier.label}</div>
-                      <div style={{fontSize:9,opacity:0.7,marginTop:2}}>{tier.sub}</div>
-                    </button>
-                  );
-                })}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                <div style={{fontSize:9,color:"#6b7280"}}>Wind speed</div>
+                <div style={{fontSize:9,color:"#4b7a5e"}}>
+                  {windTier(weather.wind_speed_mph)==="light"&&"🟢 Light"}
+                  {windTier(weather.wind_speed_mph)==="moderate"&&"🟡 Moderate"}
+                  {windTier(weather.wind_speed_mph)==="strong"&&"🔴 Strong"}
+                </div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <input type="number" min="0" max="60"
+                  value={weather.wind_speed_mph}
+                  onChange={e=>setWeather({...weather,wind_speed_mph:e.target.value})}
+                  style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,padding:"8px 10px",fontSize:16,color:"#f0fdf4",fontFamily:"inherit",outline:"none",textAlign:"center"}}
+                />
+                <div style={{fontSize:11,color:"#4b7a5e",flexShrink:0}}>mph</div>
               </div>
             </div>
             {/* Temp / Stimp / Firmness */}
@@ -865,7 +868,7 @@ export default function GolfGoStrategyGenerator() {
                     <span style={{fontSize:10,color:goalColor.text,fontWeight:500}}>{activeGoal}</span>
                   </div>
                 )}
-                <span style={{marginLeft:"auto",fontSize:9,color:"#4b7a5e"}}>{player.name} · {weather.wind_tier} {weather.wind_effect} · Pin {conditions.pin_position}</span>
+                <span style={{marginLeft:"auto",fontSize:9,color:"#4b7a5e"}}>{player.name} · {weather.wind_speed_mph}mph {weather.wind_effect} · Pin {conditions.pin_position}</span>
               </div>
 
               {editMode&&(
@@ -969,7 +972,7 @@ export default function GolfGoStrategyGenerator() {
                   const gc=goalColors[h.goal]||"#374151";
                   const isEven=idx%2===1;
                   const optionals=[h.fields.ideal_leave?`<span class="opt-label">Leave</span> ${h.fields.ideal_leave}`:"",h.fields.primary_danger?`<span class="opt-label">Danger</span> ${h.fields.primary_danger}`:"",h.fields.pin_adjustment?`<span class="opt-label">Pin</span> ${h.fields.pin_adjustment}`:""].filter(Boolean).join("  ·  ");
-                  return `<tr class="${isEven?"row-even":"row-odd"}${h.hole_number===10?" hole-10":""}"><td class="hole-cell"><div class="hole-num">H${h.hole_number}</div><div class="hole-sub">Par ${h.par||"—"}</div><div class="hole-sub">${h.yardage?h.yardage+"y":"—"}</div></td><td class="goal-cell"><span class="goal-pill" style="color:${gc};border-color:${gc}">${h.goal||"—"}</span><div class="conditions">${h.conditions?.wind_tier||""} ${h.conditions?.wind_effect||""} · Pin ${h.conditions?.pin_position||"—"}</div></td><td class="strategy-cell"><div class="field-row"><span class="field-label">TEE</span><span class="field-val">${h.fields.tee_intent||"—"}</span></div><div class="field-row"><span class="field-label">APP</span><span class="field-val">${h.fields.approach_bias||"—"}</span></div><div class="field-row"><span class="field-label">MISS</span><span class="field-val">${h.fields.miss_safety||"—"}</span></div>${optionals?`<div class="optionals">${optionals}</div>`:""}</td></tr>`;
+                  return `<tr class="${isEven?"row-even":"row-odd"}${h.hole_number===10?" hole-10":""}"><td class="hole-cell"><div class="hole-num">H${h.hole_number}</div><div class="hole-sub">Par ${h.par||"—"}</div><div class="hole-sub">${h.yardage?h.yardage+"y":"—"}</div></td><td class="goal-cell"><span class="goal-pill" style="color:${gc};border-color:${gc}">${h.goal||"—"}</span><div class="conditions">${h.conditions?.wind_speed_mph||""}mph ${h.conditions?.wind_effect||""} · Pin ${h.conditions?.pin_position||"—"}</div></td><td class="strategy-cell"><div class="field-row"><span class="field-label">TEE</span><span class="field-val">${h.fields.tee_intent||"—"}</span></div><div class="field-row"><span class="field-label">APP</span><span class="field-val">${h.fields.approach_bias||"—"}</span></div><div class="field-row"><span class="field-label">MISS</span><span class="field-val">${h.fields.miss_safety||"—"}</span></div>${optionals?`<div class="optionals">${optionals}</div>`:""}</td></tr>`;
                 }).join("");
                 const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${player.name} — Tournament Card</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Mono','Courier New',monospace;font-size:13px;background:#f8fafc;color:#111827;padding:32px;max-width:900px;margin:0 auto}.header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #111827}.header-left h1{font-size:22px;font-weight:700;letter-spacing:-0.02em}.header-left .subtitle{font-size:11px;color:#6b7280;margin-top:3px}.header-right{font-size:10px;color:#9ca3af;text-align:right}.logo{font-size:11px;font-weight:700;letter-spacing:0.1em;color:#059669;text-transform:uppercase}table{width:100%;border-collapse:collapse}thead th{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#9ca3af;padding:6px 10px;border-bottom:1px solid #d1d5db;text-align:left}tbody tr{border-bottom:1px solid #e5e7eb}tbody tr:last-child{border-bottom:2px solid #111827}.row-even .hole-cell{border-left:3px solid #059669}.row-odd .hole-cell{border-left:3px solid transparent}.hole-cell{padding:10px 10px 10px 8px;width:62px;vertical-align:top;border-right:1px solid #e5e7eb}.hole-num{font-size:16px;font-weight:700;color:#111827;line-height:1}.hole-sub{font-size:10px;color:#6b7280;margin-top:2px}.goal-cell{padding:10px;width:145px;vertical-align:top;border-right:1px solid #e5e7eb}.goal-pill{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:2px 7px;border-radius:3px;border:1px solid;background:transparent}.conditions{font-size:9px;color:#9ca3af;margin-top:5px;line-height:1.4;text-transform:capitalize}.strategy-cell{padding:10px 12px;vertical-align:top}.field-row{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}.field-row:last-of-type{margin-bottom:0}.field-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#059669;width:32px;flex-shrink:0}.field-val{font-size:12px;color:#111827;line-height:1.4}.optionals{font-size:10px;color:#6b7280;margin-top:6px;padding-top:5px;border-top:1px dashed #e5e7eb}.opt-label{font-size:8px;text-transform:uppercase;letter-spacing:0.1em;color:#9ca3af;margin-right:3px}.footer{margin-top:16px;font-size:9px;color:#d1d5db;text-align:center}@media print{body{background:#fff;padding:12mm 10mm;font-size:11px;max-width:100%}.header{margin-bottom:10px;padding-bottom:8px}.header-left h1{font-size:16px}.row-even .hole-cell{border-left:3px solid #059669}.row-odd .hole-cell{border-left:3px solid transparent}.hole-num{font-size:14px}.field-val{font-size:11px}.footer{display:none}tr{page-break-inside:avoid}tr.hole-10{page-break-before:always}}</style></head><body><div class="header"><div class="header-left"><h1>${player.name}</h1><div class="subtitle">Tournament Strategy Card &nbsp;·&nbsp; ${sorted.length} of 18 holes &nbsp;·&nbsp; ${date}</div></div><div class="header-right"><div class="logo">GolfGo</div><div style="margin-top:3px">Print &amp; carry in yardage book</div></div></div><table><thead><tr><th>Hole</th><th>Goal &amp; Conditions</th><th>Strategy</th></tr></thead><tbody>${rows}</tbody></table><div class="footer">Generated by GolfGo</div></body></html>`;
                 const blob=new Blob([html],{type:"text/html"});

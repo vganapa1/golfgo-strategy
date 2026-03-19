@@ -1,6 +1,6 @@
 # GolfGo — Coach's User Guide
 
-A tournament strategy generator. Upload a yardage book image, set your player's profile and game plan, and get a compressed, editable strategy card for each hole. Save all 18 to a sheet.
+A tournament strategy generator. Upload yardage book images, set your player's profile and game plan, and get a compressed, editable strategy card for each hole. Save all 18 to a printable sheet.
 
 ---
 
@@ -8,7 +8,7 @@ A tournament strategy generator. Upload a yardage book image, set your player's 
 
 | Left Sidebar | Right Panel |
 |---|---|
-| Player setup, conditions, image upload, Generate button | Strategy card output, Tournament Sheet |
+| Image uploads, game plan, conditions, player setup, Generate button | Strategy card output, Tournament Sheet |
 
 ---
 
@@ -75,11 +75,21 @@ Set these fresh before each hole or each round as conditions change.
 
 ---
 
-## Step 5 — Upload the Yardage Book Image
+## Step 5 — Upload Images
+
+### Primary: Yardage Book Image (required)
 
 Drag and drop, or click the upload zone. The AI reads yardage, par, hazards, green shape, dogleg, and elevation from the image directly — no manual entry needed.
 
-Supported formats: JPEG, PNG, WEBP.
+### Secondary: Green Map / Aerial (optional)
+
+Below the primary upload, there's a second drop zone labeled **Green Map / Aerial**. Upload a green map, aerial photo, or course overview here. The AI uses it for green geometry, slope context, pin detail, and depth information.
+
+If no second image is provided, the AI works from the yardage book alone — same as before.
+
+To remove a secondary image, click the **✕ Remove** button on the image preview.
+
+Supported formats: JPEG, PNG, WEBP. Images are automatically compressed client-side before sending — large phone photos are fine.
 
 ---
 
@@ -87,13 +97,13 @@ Supported formats: JPEG, PNG, WEBP.
 
 Click **▶ Generate Strategy**.
 
-The AI makes a single call: it reads the image, extracts hole data, classifies the hole, pulls your game plan goal, and builds the strategy card. Takes roughly 10–20 seconds.
+The AI makes a single call: it reads the image(s), extracts hole data, classifies the hole, pulls your game plan goal, and builds the strategy card. Takes roughly 10–20 seconds.
 
 ---
 
 ## Step 7 — Review & Edit the Card
 
-The card comes back in **edit mode**. Three required fields are pre-filled as text inputs:
+The card comes back in **edit mode**. Three required fields are pre-filled as editable text inputs:
 
 | Field | Description |
 |---|---|
@@ -114,7 +124,7 @@ Three buttons appear below the card:
 | Button | What it does |
 |---|---|
 | **✓ Save to Sheet** | Snapshots current field values (including your edits) into the Tournament Sheet. Resets the generator for the next hole. |
-| **↺ Regenerate** | Fires a fresh AI call with the same image and current conditions. Replaces the card. |
+| **↺ Regenerate** | Fires a fresh AI call with the same image(s) and current conditions. Replaces the card. |
 | **✕ Discard** | Clears the card without saving. Returns to idle. |
 
 ---
@@ -133,6 +143,20 @@ Each row has a **✕** to remove and redo that hole.
 
 ---
 
+## Step 10 — Download & Print
+
+Click **↓ Download Sheet** in the Tournament Sheet header. This downloads an HTML file — a print-optimized tournament strategy card.
+
+To print:
+
+1. Open the downloaded `.html` file in any browser
+2. **Cmd+P** (Mac) or **Ctrl+P** (Windows)
+3. Hit Print — no settings changes needed
+
+The printout automatically splits front 9 and back 9 onto separate pages. Folds into a yardage book. Each row includes hole info, goal, conditions, and all three strategy fields plus any optional fields.
+
+---
+
 ## Typical Round Workflow
 
 ```
@@ -142,14 +166,14 @@ Before the round
 
 For each hole (×18)
   → Dial in conditions (pin, wind, etc.)
-  → Upload yardage book image
+  → Upload yardage book image (+ optional green map)
   → Generate
   → Edit card if needed
   → Save to Sheet
 
 After all 18
-  → Review the full Tournament Sheet
-  → Print / photograph / share with player
+  → Download Sheet → open in browser → Cmd+P → print
+  → Fold into yardage book and go
 ```
 
 ---
@@ -161,3 +185,5 @@ After all 18
 - **Wind changes mid-round** — update wind tier/effect before generating each hole. It's baked into the prompt.
 - **Same hole, different goal** — change the game plan goal for that hole category in the sidebar, then hit Regenerate.
 - **Raw data check** — click "AI Extraction · Raw Hole Data" (collapsed below the card) to verify the yardages and hazards the AI pulled. If the numbers look off, the image quality may be too low.
+- **Two images** — use the second upload for green maps or aerials. Especially useful for holes with tricky green complexes or hidden slopes.
+- **Large photos** — images are automatically compressed before sending. No need to resize manually.
